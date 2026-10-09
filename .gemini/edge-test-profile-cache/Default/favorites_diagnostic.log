@@ -1,0 +1,89 @@
+2026-10-09 18:02:36.059: [INFO] CurrentProfilePath: C:\xampp\htdocs\projects\pahinga\.gemini\edge-test-profile-cache\Default
+2026-10-09 18:02:36.059: [INFO] Profiles total count: 1
+2026-10-09 18:02:36.059: [INFO] Profile: name=Profile 1 path=C:\xampp\htdocs\projects\pahinga\.gemini\edge-test-profile-cache\Default lastActive=null
+2026-10-09 18:02:36.059: [INFO] LastUsedProfileDir: C:\xampp\htdocs\projects\pahinga\.gemini\edge-test-profile-cache\Default
+2026-10-09 18:02:36.059: [INFO] VisibilityChanged: 0
+2026-10-09 18:02:36.083: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.086: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.088: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.091: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.092: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.094: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.096: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.104: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.107: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.110: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:36.132: [INFO] OnDoneLoading sync enabled: 0
+2026-10-09 18:02:36.132: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-10-09 18:02:36.132: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-10-09 18:02:36.132: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-10-09 18:02:36.138: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:38.158: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 0
+2026-10-09 18:02:38.166: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 3
+2026-10-09 18:02:38.176: [INFO] Primary account changed.
+2026-10-09 18:02:38.176: [INFO] OnPrimaryAccountChanged PrimaryAccountChangeEvent::Type::kSet
+2026-10-09 18:02:38.198: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 3
+2026-10-09 18:02:38.227: [INFO] RecordSyncInitDuration has_sync_been_enabled: 0 state: 3
+2026-10-09 18:02:43.839: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.839: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.840: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.840: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.845: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.846: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.848: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.848: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.849: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.850: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.850: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.850: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.851: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.852: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.852: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.853: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.853: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.854: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.854: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.855: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.855: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.857: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.857: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.858: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.858: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.858: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.859: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.859: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.860: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.860: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.861: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.861: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.863: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.864: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.865: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.866: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.867: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.868: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.869: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.870: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.871: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.872: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.872: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.873: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.874: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.875: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.876: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.877: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.877: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.878: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.879: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.881: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.882: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.883: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.884: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.885: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.885: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.886: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.886: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.887: [INFO] BookmarkNodeAdded, ABU: 0
+2026-10-09 18:02:43.909: [INFO] BookmarkBarPrefChanged showBar=0 showBarNTP=0
+2026-10-09 18:02:43.949: [INFO] VisibilityChanged: 1
+2026-10-09 18:02:44.585: [INFO] Sync initialization duration: 6158ms

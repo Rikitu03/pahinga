@@ -1,0 +1,107 @@
+---
+interface Props {
+  title: string;
+  message: string;
+  statusCode: string;
+}
+
+const { title, message, statusCode } = Astro.props;
+---
+
+<aside class="request-error-toast" role="alert" aria-live="assertive">
+  <div class="request-error-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 9v4"></path>
+      <path d="M12 17h.01"></path>
+      <path d="M10.3 3.8 2.9 17a2 2 0 0 0 1.75 3h14.7a2 2 0 0 0 1.75-3L13.7 3.8a2 2 0 0 0-3.4 0Z"></path>
+    </svg>
+  </div>
+  <div class="request-error-copy">
+    <p class="request-error-kicker">Request {statusCode}</p>
+    <h1>{title}</h1>
+    <p>{message}</p>
+  </div>
+</aside>
+
+<style>
+  .request-error-toast {
+    position: fixed;
+    z-index: 20;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+    display: flex;
+    width: min(calc(100vw - 2rem), 23rem);
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(13, 148, 136, 0.14);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.96);
+    color: #134e4a;
+    box-shadow: 0 16px 36px -18px rgba(15, 118, 110, 0.42), 0 4px 12px rgba(15, 118, 110, 0.08);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    animation: request-error-in 0.28s cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  .request-error-icon {
+    display: grid;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 9999px;
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .request-error-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .request-error-copy {
+    min-width: 0;
+  }
+
+  .request-error-kicker {
+    margin: 0 0 0.15rem;
+    color: #0f766e;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .request-error-copy h1 {
+    margin: 0;
+    color: #134e4a;
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .request-error-copy p:last-child {
+    margin: 0.25rem 0 0;
+    color: #47716d;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  @keyframes request-error-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0.75rem, -0.4rem, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .request-error-toast {
+      animation: none;
+    }
+  }
+</style>
