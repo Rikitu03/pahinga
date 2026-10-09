@@ -47,7 +47,9 @@ function cleanReply(value: unknown) {
   const reply = value
     .replace(/<\|im_end\|>/g, '')
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/^[\s\S]*?<\/think>/i, '')
     .replace(/<think>[\s\S]*$/gi, '')
+    .replace(/<\/think>/gi, '')
     .replace(/^\s*(assistant|pahinga)\s*:\s*/i, '')
     .trim();
   if (!reply || reply.length > MAX_REPLY_LENGTH) return null;
