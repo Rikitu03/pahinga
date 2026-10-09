@@ -3,10 +3,10 @@ import promptTemplate from '../../assets/pahinga_prompt.md?raw';
 
 const DEFAULT_QWEN_URL = 'http://127.0.0.1:8080/v1/chat/completions';
 const DEFAULT_MODEL = 'Qwen3-1.7B-Q4_K_M.gguf';
-const DEFAULT_TIMEOUT_MS = 2500;
+const DEFAULT_TIMEOUT_MS = 60_000;
 const MAX_MESSAGE_LENGTH = 1200;
 const MAX_CONTEXT_MESSAGES = 2;
-const MAX_REPLY_LENGTH = 900;
+const MAX_REPLY_LENGTH = 2000;
 const MAX_PROFILE_FIELD_LENGTH = 300;
 
 type ChatMessage = {
@@ -118,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
   const model = process.env.PAHINGA_QWEN_MODEL?.trim() || DEFAULT_MODEL;
   const configuredTimeout = Number(process.env.PAHINGA_QWEN_TIMEOUT_MS);
   const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout >= 500
-    ? Math.min(configuredTimeout, 10_000)
+    ? Math.min(configuredTimeout, 30_000)
     : DEFAULT_TIMEOUT_MS;
 
   const controller = new AbortController();
@@ -143,11 +143,11 @@ export const POST: APIRoute = async ({ request }) => {
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.55,
+        temperature: 0.65,
         top_p: 0.9,
-        max_tokens: 120,
+        max_tokens: 800,
         stream: false,
-        chat_template_kwargs: { enable_thinking: false },
+        chat_template_kwargs: { enable_thinking: true },
       }),
       signal: controller.signal,
     });
