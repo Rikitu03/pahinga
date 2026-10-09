@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-[#eef7f6]">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fafcfc" />
+  <title>Pahinga</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN (pinned) -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Figtree', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Shared form primitives (Tailwind @apply) — reuse these on later steps -->
+  <style type="text/tailwindcss">
+    @layer components {
+      .field-label {
+        @apply mb-2 block pl-1 text-sm font-medium text-teal-900/80;
+      }
+      .field {
+        @apply block w-full rounded-3xl border border-teal-700/45 bg-white/70 px-5 text-base text-teal-950
+               shadow-[inset_0_1px_2px_rgba(19,78,74,.04)]
+               transition-[border-color,box-shadow,background-color] duration-200
+               placeholder:text-teal-800/75
+               focus-visible:border-teal-500 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-400/30
+               aria-[invalid=true]:border-amber-500 aria-[invalid=true]:bg-amber-50/60
+               aria-[invalid=true]:focus-visible:ring-amber-400/30
+               motion-reduce:transition-none;
+      }
+      .field-error {
+        @apply mt-2 pl-1 text-sm leading-snug text-amber-800 empty:hidden;
+      }
+    }
+  </style>
+
+  <!-- Custom CSS: only the background glow and the subtle entrance motion -->
+  <style>
+    .glow {
+      background: radial-gradient(ellipse 90% 100% at 50% 100%,
+        #47cfa9 0%, #4fcbd4 36%, rgba(125, 222, 234, .45) 62%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    .enter { animation: enter .7s cubic-bezier(.22, 1, .36, 1) both; }
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .field-error:not(:empty) { animation: error-in .25s ease-out both; }
+    @keyframes error-in {
+      from { opacity: 0; transform: translateY(-3px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .enter, .field-error:not(:empty) { animation: none; }
+    }
+  </style>
+</head>
+
+<body class="flex min-h-dvh items-center justify-center bg-[linear-gradient(115deg,#e4f6f2_0%,#f3faf9_48%,#e8ebf9_100%)] font-sans text-teal-950 antialiased [-webkit-tap-highlight-color:transparent] sm:p-4">
+
+  <div id="app"
+       class="relative h-[var(--app-h,100dvh)] w-full max-w-[440px] overflow-hidden bg-[#fafcfc] sm:h-[min(880px,calc(100dvh-2rem))] sm:rounded-[2.5rem] sm:shadow-[0_40px_90px_-40px_rgba(19,78,74,.45)] sm:ring-1 sm:ring-white/70">
+
+    <div class="h-full overflow-y-auto overscroll-contain">
+      <div class="relative flex min-h-full flex-col pb-52">
+
+        <!-- ===== Header ===== -->
+        <header class="flex items-center px-6 pt-[max(1.25rem,env(safe-area-inset-top))]">
+          <p class="grid size-9 place-items-center rounded-full border border-teal-700/45 bg-white/70 text-sm font-semibold text-teal-900">
+            <span class="sr-only">Step </span><span id="step-number">1</span>
+          </p>
+        </header>
+
+        <main class="enter flex flex-col items-center px-6 pt-2">
+
+          <!-- Logo mark (placeholder drawing — swap in your final asset) -->
+          <h1 class="w-24">
+            <svg viewBox="0 0 120 120" class="block w-full" role="img" aria-label="Pahinga">
+              <defs>
+                <linearGradient id="lg-sky" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#3fb4ee"></stop>
+                  <stop offset="1" stop-color="#5b66d8"></stop>
+                </linearGradient>
+                <linearGradient id="lg-wave" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#34c0aa"></stop>
+                  <stop offset="1" stop-color="#4fd69b"></stop>
+                </linearGradient>
+                <linearGradient id="lg-deep" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#1b8f93"></stop>
+                  <stop offset="1" stop-color="#115d6e"></stop>
+                </linearGradient>
+                <clipPath id="lg-clip">
+                  <path d="M18 78V52C18 28 36 10 60 10s42 18 42 42v26c0 20-18 34-42 34S18 98 18 78z"></path>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#lg-clip)">
+                <rect width="120" height="120" fill="url(#lg-sky)"></rect>
+                <path d="M46 78 74 36q5-6 10 0l26 42z" fill="#fff"></path>
+                <path d="M34 72C32 48 48 34 66 38c-8 8-9 20-3 30-9-5-20-4-29 4z" fill="#2754b4"></path>
+                <path d="M46 62c-1-10 5-18 14-20-5 6-5 13-1 20-4-2-9-2-13 0z" fill="#3b73d6"></path>
+                <circle cx="92" cy="40" r="7" fill="#fff"></circle>
+                <circle cx="100" cy="44" r="6" fill="#fff"></circle>
+                <circle cx="84" cy="45" r="5" fill="#fff"></circle>
+                <path d="M10 74c20-12 34 4 52 0s30-10 48-6v16c-18-4-30 4-48 6S30 80 10 88z" fill="url(#lg-wave)"></path>
+                <path d="M10 88c20-8 34 4 52 2s30-10 48-6v6c-18-4-30 4-48 6S30 86 10 94z" fill="#fff"></path>
+                <path d="M10 94c20-8 34 4 52 2s30-10 48-6v40H10z" fill="url(#lg-deep)"></path>
+              </g>
+            </svg>
+          </h1>
+
+          <!-- ===== Form ===== -->
+          <form id="onboarding-form" novalidate aria-label="Your details" class="mt-12 flex w-full flex-col gap-7">
+
+            <!-- Name -->
+            <div>
+              <label for="name" class="field-label">Name</label>
+              <input id="name" name="name" type="text" data-field="name" required
+                     autocomplete="name" autocapitalize="words" spellcheck="false" maxlength="80"
+                     placeholder="Jason Jay M. Recto..."
+                     aria-invalid="false" aria-describedby="name-error"
+                     class="field h-14" />
+              <p id="name-error" class="field-error" aria-live="polite"></p>
+            </div>
+
+            <!-- Country + Age -->
+            <div class="grid grid-cols-[1fr_7rem] items-start gap-x-3 gap-y-7">
+              <div>
+                <label for="country" class="field-label">Country</label>
+                <div class="relative">
+                  <select id="country" name="country" data-field="country" required
+                          autocomplete="country"
+                          aria-invalid="false" aria-describedby="country-error"
+                          class="field h-14 cursor-pointer appearance-none pr-12 invalid:text-teal-800/75 [&>option]:text-teal-950">
+                    <option value="" disabled selected hidden>Philippines...</option>
+                  </select>
+                  <svg viewBox="0 0 24 24" class="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-teal-800/70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6"></path>
+                  </svg>
+                </div>
+                <p id="country-error" class="field-error" aria-live="polite"></p>
+              </div>
+
+              <div>
+                <label for="age" class="field-label">Age</label>
+                <input id="age" name="age" type="number" data-field="age" required
+                       inputmode="numeric" min="13" max="120" step="1" autocomplete="off"
+                       placeholder="18..."
+                       aria-invalid="false" aria-describedby="age-error"
+                       class="field h-14 px-4 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                <p id="age-error" class="field-error" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <!-- Describe yourself -->
+            <div>
+              <label for="about" class="field-label">Describe yourself</label>
+              <div class="relative">
+                <textarea id="about" name="about" data-field="about" rows="5" maxlength="300"
+                          placeholder="say everything you want about yourself... your safe."
+                          aria-describedby="about-hint about-error"
+                          class="field min-h-[10.5rem] resize-none overflow-hidden py-4 pb-10 leading-relaxed"></textarea>
+                <p id="about-count" aria-hidden="true"
+                   class="pointer-events-none absolute bottom-3 right-5 text-xs text-teal-900/70 data-[near=true]:text-amber-800"><span id="about-count-n"></span>/300</p>
+              </div>
+              <p id="about-hint" class="sr-only">Optional. Up to 300 characters. Press Control or Command plus Enter to continue.</p>
+              <p id="about-error" class="field-error" aria-live="polite"></p>
+            </div>
+
+            <!-- CTA -->
+            <div>
+              <p id="form-error" role="alert" class="field-error mb-3 text-center"></p>
+              <button id="cta" type="submit" disabled aria-describedby="cta-hint"
+                      class="h-14 w-full rounded-full bg-teal-700 text-xl font-semibold tracking-tight text-white shadow-[0_14px_30px_-14px_rgba(15,118,110,.7)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fafcfc] active:scale-[.985] active:bg-teal-900 disabled:cursor-not-allowed disabled:bg-[#98c4c7] disabled:shadow-none disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100">
+                <span id="cta-label">continue...</span>
+              </button>
+              <p id="cta-hint" class="sr-only">Enter your name, country, and age to continue.</p>
+            </div>
+          </form>
+        </main>
+
+        <!-- Bottom glow -->
+        <div class="glow pointer-events-none absolute inset-x-0 bottom-0 h-52" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <script id="app-js">
+    (() => {
+      'use strict';
+
+      /* ================= Config ================= */
+      const STEP = 1;
+      const MIN_AGE = 13;
+      const MAX_AGE = 120;
+      const NAME_MIN = 2;
+      const ABOUT_MAX = 300;
+      const ABOUT_MAX_HEIGHT = 320;   // px — textarea stops growing here and scrolls
+      const ABOUT_WARN_AT = 270;      // counter turns amber past this many characters
+
+      // ISO 3166-1 alpha-2 codes; display names come from Intl.DisplayNames (falls back to the code).
+      const REGION_CODES = (
+        'AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ ' +
+        'CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK ' +
+        'FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IM IN IQ IR IS IT ' +
+        'JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML ' +
+        'MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM ' +
+        'PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD ' +
+        'TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW'
+      ).split(' ');
+
+      /* ================= Elements ================= */
+      const $ = (id) => document.getElementById(id);
+      const app = $('app');
+      const form = $('onboarding-form');
+      const cta = $('cta');
+      const ctaLabel = $('cta-label');
+      const formError = $('form-error');
+      const countEl = $('about-count');
+      const countNumber = $('about-count-n');
+      $('step-number').textContent = String(STEP);
+
+      /* ================= Fields =================
+         To add a field: add markup with data-field + an "-error" element, then register it here. */
+      const fields = {
+        name: {
+          el: $('name'),
+          error: $('name-error'),
+          required: true,
+          validate: (v) => (v.length < NAME_MIN ? 'Please tell us what to call you.' : ''),
+        },
+        country: {
+          el: $('country'),
+          error: $('country-error'),
+          required: true,
+          validate: (v) => (v ? '' : 'Please choose your country.'),
+        },
+        age: {
+          el: $('age'),
+          error: $('age-error'),
+          required: true,
+          validate: (v) => {
+            if (!v) return 'Please add your age.';
+            const n = Number(v);
+            if (!Number.isInteger(n) || n < MIN_AGE || n > MAX_AGE) {
+              return `Please enter an age from ${MIN_AGE} to ${MAX_AGE}.`;
+            }
+            return '';
+          },
+        },
+        about: {
+          el: $('about'),
+          error: $('about-error'),
+          required: false,
+          validate: (v) => (v.length > ABOUT_MAX ? `Please keep this under ${ABOUT_MAX} characters.` : ''),
+        },
+      };
+      const order = ['name', 'country', 'age', 'about'];
+      const requiredKeys = order.filter((k) => fields[k].required);
+      let submitting = false;
+
+      /* ================= Countries ================= */
+      function populateCountries() {
+        let names = null;
+        try {
+          if (typeof Intl.DisplayNames === 'function') {
+            names = new Intl.DisplayNames(['en'], { type: 'region' });
+          }
+        } catch (err) { /* fall back to codes */ }
+
+        const items = REGION_CODES.map((code) => {
+          let label = code;
+          try { label = (names && names.of(code)) || code; } catch (err) { /* keep code */ }
+          return { code, label };
+        }).sort((a, b) => a.label.localeCompare(b.label, 'en'));
+
+        const frag = document.createDocumentFragment();
+        for (const { code, label } of items) {
+          const opt = document.createElement('option');
+          opt.value = code;
+          opt.textContent = label;
+          frag.append(opt);
+        }
+        fields.country.el.append(frag);
+      }
+
+      /* ================= Validation ================= */
+      const valueOf = (key) => fields[key].el.value.trim();
+
+      function setError(key, message) {
+        const { el, error } = fields[key];
+        error.textContent = message;
+        el.setAttribute('aria-invalid', message ? 'true' : 'false');
+      }
+
+      // Returns the error message; only paints it when `show` is true.
+      function validateField(key, show) {
+        const message = fields[key].validate(valueOf(key));
+        if (show) setError(key, message);
+        return message;
+      }
+
+      function isReady() {
+        return requiredKeys.every((k) => !fields[k].validate(valueOf(k)));
+      }
+
+      function syncCta() {
+        cta.disabled = submitting || !isReady();
+      }
+
+      /* ================= Textarea ================= */
+      function autoResize() {
+        const el = fields.about.el;
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, ABOUT_MAX_HEIGHT) + 'px';
+        el.style.overflowY = el.scrollHeight > ABOUT_MAX_HEIGHT ? 'auto' : 'hidden';
+      }
+
+      function syncCounter() {
+        const length = fields.about.el.value.length;
+        countNumber.textContent = length > 0 ? String(length) : '';
+        countEl.dataset.near = String(length >= ABOUT_WARN_AT);
+      }
+
+      /* ================= Events ================= */
+      form.addEventListener('input', (e) => {
+        const key = e.target.dataset.field;
+        if (!key) return;
+        // Don't scold while typing, but clear (or refresh) an error that's already showing.
+        if (fields[key].el.getAttribute('aria-invalid') === 'true') validateField(key, true);
+        if (key === 'about') { autoResize(); syncCounter(); }
+        formError.textContent = '';
+        syncCta();
+      });
+
+      form.addEventListener('change', (e) => {
+        const key = e.target.dataset.field;
+        if (!key) return;
+        validateField(key, true);   // selects and number steppers commit on change
+        syncCta();
+      });
+
+      form.addEventListener('focusout', (e) => {
+        const key = e.target.dataset.field;
+        if (!key) return;
+        validateField(key, true);   // validate on blur
+        syncCta();
+      });
+
+      // Number input: block characters that aren't whole digits.
+      fields.age.el.addEventListener('keydown', (e) => {
+        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) e.preventDefault();
+      });
+
+      // Enter moves to the next field; Cmd/Ctrl+Enter in the textarea submits.
+      form.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.isComposing) return;
+        const key = e.target.dataset.field;
+        if (!key) return;   // buttons keep their default behavior
+
+        if (key === 'about') {
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            submit();
+          }
+          return;   // plain Enter inserts a newline
+        }
+
+        e.preventDefault();
+        fields[order[order.indexOf(key) + 1]].el.focus();
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submit();
+      });
+
+      /* ================= Submit ================= */
+      function collectData() {
+        const country = fields.country.el;
+        return {
+          name: valueOf('name'),
+          countryCode: country.value,
+          country: country.selectedOptions[0] ? country.selectedOptions[0].textContent : '',
+          age: Number(valueOf('age')),
+          about: valueOf('about'),
+        };
+      }
+
+      function setSubmitting(on) {
+        submitting = on;
+        form.setAttribute('aria-busy', String(on));
+        ctaLabel.textContent = on ? 'continuing...' : 'continue...';
+        syncCta();
+      }
+
+      // Hook for the rest of the flow. Replace the body with your API call and navigation, e.g.
+      //   await fetch('/api/onboarding', { method: 'POST', body: JSON.stringify(data) });
+      //   location.href = './step-2.html';
+      async function onStepComplete(data) {
+        document.dispatchEvent(new CustomEvent('pahinga:step-complete', { detail: { step: STEP, data } }));
+        await new Promise((resolve) => setTimeout(resolve, 600));   // placeholder latency
+      }
+
+      async function submit() {
+        if (submitting) return;
+
+        const invalid = order.filter((key) => validateField(key, true));
+        syncCta();
+        if (invalid.length) {
+          fields[invalid[0]].el.focus();
+          return;
+        }
+
+        formError.textContent = '';
+        setSubmitting(true);
+        try {
+          await onStepComplete(collectData());
+        } catch (err) {
+          console.error(err);
+          formError.textContent = 'Something went wrong on our side. Please try again.';
+        } finally {
+          setSubmitting(false);
+        }
+      }
+
+      /* ================= Layout niceties ================= */
+      // Mobile keyboards: size the app to the visual viewport so the form scrolls instead of hiding.
+      if (window.visualViewport) {
+        const fit = () => app.style.setProperty('--app-h', window.visualViewport.height + 'px');
+        window.visualViewport.addEventListener('resize', fit);
+        fit();
+      }
+
+      /* ================= Init ================= */
+      populateCountries();
+      autoResize();
+      syncCounter();
+      syncCta();
+    })();
+  </script>
+</body>
+</html>

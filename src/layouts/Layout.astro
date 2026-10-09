@@ -1,3 +1,6 @@
+---
+import { Agentation } from 'agentation';
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -10,6 +13,7 @@
 	</head>
 	<body>
 		<slot />
+		{import.meta.env.DEV && <Agentation client:only="react" />}
 	</body>
 </html>
 
