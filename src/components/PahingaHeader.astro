@@ -36,12 +36,29 @@
         </g>
       </svg>
     </div>
-    <h1 class="text-2xl font-bold tracking-tight text-teal-950 font-sans">Pahinga</h1>
+    <div class="flex items-center gap-2">
+      <h1 class="text-2xl font-bold tracking-tight text-teal-950 font-sans">Pahinga</h1>
+      <span id="ai-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7rem] font-medium bg-teal-100/70 text-teal-800 ring-1 ring-teal-600/20 transition-all duration-300" title="100% On-device Local AI (No cloud API)">
+        <span id="ai-badge-dot" class="size-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="ai-badge-text">On-device AI</span>
+      </span>
+    </div>
   </div>
 
   <div class="flex items-center gap-2">
+    <!-- Ambient Sound Button (Procedural Calming Ocean Waves, Muted by default) -->
+    <button id="ambient-btn" type="button" data-active="false" aria-pressed="false"
+            aria-label="Toggle soothing ambient sound" title="Ambient Sound: Calming ocean waves & gentle rain"
+            class="relative size-10 rounded-full bg-white/70 hover:bg-white text-teal-800 shadow-sm ring-1 ring-white/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 data-[active=true]:bg-teal-600 data-[active=true]:text-white data-[active=true]:ring-teal-400/50 data-[active=true]:shadow-[0_2px_12px_-2px_rgba(13,148,136,0.6)]">
+      <span class="ambient-ripple pointer-events-none absolute inset-0 rounded-full border border-teal-400 opacity-0 transition-opacity" aria-hidden="true"></span>
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 10c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 5-2.5 7 0"></path>
+        <path d="M2 14c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 5-2.5 7 0" opacity="0.65"></path>
+      </svg>
+    </button>
+
     <!-- Sound toggle button (matches attached screenshot) -->
-    <button id="sound-btn" type="button" aria-label="Sound settings" title="Sound options"
+    <button id="sound-btn" type="button" aria-label="Voice read-aloud options" title="Spoken replies (read-aloud)"
             class="size-10 rounded-full bg-white/70 hover:bg-white text-teal-800 shadow-sm ring-1 ring-white/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
       <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>

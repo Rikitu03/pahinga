@@ -12,6 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^11.1.7",
     "@astrojs/react": "^7.0.1",
     "@huggingface/transformers": "^4.3.1",
     "@rolldown/binding-win32-x64-msvc": "^1.2.13",
@@ -23,6 +24,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "agentation": "^3.1.2",
     "typescript": "~6.0.3"
   }

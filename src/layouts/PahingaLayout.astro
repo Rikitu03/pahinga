@@ -38,10 +38,25 @@ const { title = 'Pahinga' } = Astro.props;
       },
     };
   </script>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Pahinga" />
 </head>
 
 <body class="flex min-h-dvh flex-col bg-[linear-gradient(115deg,#e4f6f2_0%,#eef8f6_48%,#e8ebf9_100%)] font-sans text-teal-950 antialiased [-webkit-tap-highlight-color:transparent]">
   <slot />
   {import.meta.env.DEV && <Agentation client:only="react" />}
+
+  <script is:inline>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.debug('[Pahinga SW] Service worker notice:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

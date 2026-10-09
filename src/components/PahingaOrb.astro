@@ -7,6 +7,12 @@
        class="orb-shell mt-4 sm:mt-6 size-[min(56vw,228px)] sm:size-[240px] shrink-0 transition-[width,height,margin] duration-[800ms] ease-[cubic-bezier(.4,0,.2,1)] group-data-[collapsed=true]/stage:mt-1 group-data-[collapsed=true]/stage:size-14 motion-reduce:transition-none cursor-pointer">
     <div class="orb size-full"></div>
   </div>
+  <button id="orb-toggle" type="button" aria-pressed="false"
+          class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-sm font-medium text-teal-800 shadow-sm ring-1 ring-teal-700/10 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 motion-reduce:transition-none"
+          aria-label="Pause breathing orb">
+    <span class="orb-toggle-icon" aria-hidden="true">Ⅱ</span>
+    <span class="orb-toggle-label">Pause breathing</span>
+  </button>
   <p id="orb-caption"
      class="mt-8 sm:mt-9 max-h-12 overflow-hidden text-center text-[1.05rem] sm:text-lg font-medium text-teal-700 transition-[opacity,max-height,margin] duration-500 ease-out group-data-[collapsed=true]/stage:mt-0 group-data-[collapsed=true]/stage:max-h-0 group-data-[collapsed=true]/stage:opacity-0 motion-reduce:transition-none">
     Inhale gently... drop your shoulders.
