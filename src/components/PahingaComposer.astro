@@ -1,0 +1,59 @@
+---
+---
+
+<footer class="relative px-4 sm:px-6 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2 w-full max-w-3xl mx-auto">
+  <div id="status" role="status" aria-live="polite" data-show="false"
+       class="pointer-events-none absolute bottom-full left-1/2 mb-3 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full bg-teal-950/90 backdrop-blur-md px-4 py-2 text-center text-sm font-medium text-white opacity-0 shadow-lg transition-opacity duration-300 data-[show=true]:opacity-100 motion-reduce:transition-none z-20"></div>
+
+  <!-- Feeling Chips -->
+  <div id="feeling-chips" class="flex w-full items-center gap-2.5 overflow-x-auto mb-4 pb-1 pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory" aria-label="Quick feelings">
+    {
+      [
+        "I'm burnt out",
+        "I wish I was talented",
+        "If only I'm as good as everybody",
+        "I feel so down",
+        "Everything feels so heavy"
+      ].map((chip) => (
+        <button
+          type="button"
+          class="feeling-chip snap-start shrink-0 flex items-center gap-2 whitespace-nowrap rounded-full bg-white/95 px-4 py-[0.6rem] text-[0.95rem] font-semibold text-teal-950 shadow-sm ring-1 ring-black/5 backdrop-blur-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          {chip}
+          <svg viewBox="0 0 24 24" class="size-4 text-teal-800/60" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </button>
+      ))
+    }
+  </div>
+
+  <form id="composer" data-typing="false" autocomplete="off"
+        class="group/composer flex items-center gap-2.5 rounded-[2rem] bg-white/85 p-2 px-3 shadow-composer ring-1 ring-white/90 backdrop-blur-xl transition-all focus-within:ring-2 focus-within:ring-teal-400/80 focus-within:bg-white">
+    
+    <!-- Mic Button on the left (matches attached screenshot) -->
+    <button id="mic-btn" type="button" data-listening="false" aria-pressed="false" aria-label="Start voice input"
+            class="mic relative size-10 shrink-0 grid place-items-center rounded-full bg-slate-100 hover:bg-slate-200/80 text-teal-800 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 data-[listening=true]:bg-teal-600 data-[listening=true]:text-white">
+      <span class="listen-ring" aria-hidden="true"></span>
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path>
+      </svg>
+    </button>
+
+    <label for="message" class="sr-only">Message Pahinga</label>
+    <textarea id="message" rows="1" enterkeyhint="send" autocapitalize="sentences" spellcheck="true"
+              placeholder="Speak or type freely... you are safe here."
+              class="block max-h-[7.5rem] min-h-10 w-full resize-none overflow-y-hidden bg-transparent py-2 px-1 text-[1.02rem] leading-6 text-teal-950 placeholder:text-teal-800/70 focus:outline-none"></textarea>
+
+    <!-- Send Button on the right (matches attached screenshot) -->
+    <button id="send-btn" type="submit" aria-label="Send message" disabled
+            class="relative size-10 shrink-0 grid place-items-center rounded-full bg-teal-400/40 text-white shadow-sm transition-all duration-200 hover:bg-teal-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:cursor-not-allowed disabled:bg-teal-400/30 disabled:text-white/60 disabled:shadow-none group-data-[typing=true]/composer:bg-teal-600 group-data-[typing=true]/composer:text-white group-data-[typing=true]/composer:shadow-[0_4px_14px_-2px_rgba(13,148,136,.6)]">
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5 12l7-7 7 7"></path>
+      </svg>
+    </button>
+  </form>
+
+  <p class="mt-2.5 text-center text-xs text-teal-900/75 select-none">Pahinga is powered by AI and can make mistakes.</p>
+</footer>

@@ -1,0 +1,112 @@
+---
+---
+
+<header class="w-full max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
+  <div class="flex items-center gap-2.5">
+    <div class="size-10 rounded-full overflow-hidden shadow-[0_2px_12px_-2px_rgba(20,184,166,.4)] ring-1 ring-white/90 shrink-0 bg-white" aria-hidden="true">
+      <svg viewBox="0 0 120 120" class="w-full h-full block" role="img" aria-label="Pahinga">
+        <defs>
+          <linearGradient id="hdr-sky" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3fb4ee"></stop>
+            <stop offset="1" stop-color="#5b66d8"></stop>
+          </linearGradient>
+          <linearGradient id="hdr-wave" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#34c0aa"></stop>
+            <stop offset="1" stop-color="#4fd69b"></stop>
+          </linearGradient>
+          <linearGradient id="hdr-deep" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1b8f93"></stop>
+            <stop offset="1" stop-color="#115d6e"></stop>
+          </linearGradient>
+          <clipPath id="hdr-clip">
+            <circle cx="60" cy="60" r="60"></circle>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#hdr-clip)">
+          <rect width="120" height="120" fill="url(#hdr-sky)"></rect>
+          <path d="M46 78 74 36q5-6 10 0l26 42z" fill="#fff"></path>
+          <path d="M34 72C32 48 48 34 66 38c-8 8-9 20-3 30-9-5-20-4-29 4z" fill="#2754b4"></path>
+          <path d="M46 62c-1-10 5-18 14-20-5 6-5 13-1 20-4-2-9-2-13 0z" fill="#3b73d6"></path>
+          <circle cx="92" cy="40" r="7" fill="#fff"></circle>
+          <circle cx="100" cy="44" r="6" fill="#fff"></circle>
+          <circle cx="84" cy="45" r="5" fill="#fff"></circle>
+          <path d="M10 74c20-12 34 4 52 0s30-10 48-6v16c-18-4-30 4-48 6S30 80 10 88z" fill="url(#hdr-wave)"></path>
+          <path d="M10 88c20-8 34 4 52 2s30-10 48-6v6c-18-4-30 4-48 6S30 86 10 94z" fill="#fff"></path>
+          <path d="M10 94c20-8 34 4 52 2s30-10 48-6v40H10z" fill="url(#hdr-deep)"></path>
+        </g>
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold tracking-tight text-teal-950 font-sans">Pahinga</h1>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <!-- Sound toggle button (matches attached screenshot) -->
+    <button id="sound-btn" type="button" aria-label="Sound settings" title="Sound options"
+            class="size-10 rounded-full bg-white/70 hover:bg-white text-teal-800 shadow-sm ring-1 ring-white/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </button>
+
+    <!-- 24/7 Crisis Support button (matches attached screenshot) -->
+    <button id="crisis-btn" type="button" aria-label="Crisis hotlines and emergency support" title="24/7 Crisis Hotline"
+            class="size-10 rounded-full bg-white/70 hover:bg-white text-rose-400 hover:text-rose-500 shadow-sm ring-1 ring-white/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+      </svg>
+    </button>
+
+    <!-- End Session Button -->
+    <button id="end-session" type="button"
+            class="hidden sm:inline-flex min-h-10 items-center rounded-full px-3.5 text-[0.92rem] font-medium text-teal-800 transition-colors hover:bg-white/70 hover:text-teal-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+      End session
+    </button>
+  </div>
+</header>
+
+<!-- Crisis Support Dialog / Modal -->
+<dialog id="crisis-modal"
+        class="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-3xl bg-white/95 p-6 shadow-2xl backdrop:bg-teal-950/40 backdrop:backdrop-blur-sm ring-1 ring-white/90 text-teal-950">
+  <div class="flex items-start justify-between gap-4 pb-3 border-b border-teal-100">
+    <div class="flex items-center gap-2.5">
+      <span class="size-8 rounded-full bg-rose-50 text-rose-500 grid place-items-center">
+        <svg viewBox="0 0 24 24" class="size-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+      </span>
+      <h2 class="text-lg font-bold text-teal-950">24/7 Crisis Support</h2>
+    </div>
+    <button id="close-crisis-modal" type="button" aria-label="Close"
+            class="size-8 rounded-full text-teal-700 hover:bg-teal-50 grid place-items-center transition-colors">
+      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="mt-4 space-y-3.5 text-sm text-teal-900 leading-relaxed">
+    <p>You don't have to face heavy moments alone. Real, caring professionals are available anytime:</p>
+    <div class="rounded-2xl bg-teal-50/70 p-3.5 border border-teal-100/70 space-y-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-semibold text-teal-950">NCMH Crisis Hotline</p>
+          <p class="text-xs text-teal-700">Toll-free nationwide (Philippines)</p>
+        </div>
+        <a href="tel:1553" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs shadow-sm transition-colors">
+          Call 1553
+        </a>
+      </div>
+      <div class="pt-2 border-t border-teal-200/50 flex items-center justify-between">
+        <div>
+          <p class="font-semibold text-teal-950">Mobile Hotline</p>
+          <p class="text-xs text-teal-700">0917-899-USAP (8727)</p>
+        </div>
+        <a href="tel:09178998727" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-700 hover:bg-teal-800 text-white font-medium text-xs shadow-sm transition-colors">
+          Call mobile
+        </a>
+      </div>
+    </div>
+    <p class="text-xs text-teal-800/80">Pahinga is a calming companion, not an emergency response service. If you are in immediate danger, please reach out directly.</p>
+  </div>
+</dialog>

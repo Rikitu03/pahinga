@@ -1,0 +1,22 @@
+---
+import PahingaLayout from '../layouts/PahingaLayout.astro';
+import PahingaHeader from '../components/PahingaHeader.astro';
+import PahingaOrb from '../components/PahingaOrb.astro';
+import PahingaChatThread from '../components/PahingaChatThread.astro';
+import PahingaComposer from '../components/PahingaComposer.astro';
+---
+
+<PahingaLayout title="Pahinga">
+  <div id="app"
+       class="relative flex h-[var(--app-h,100dvh)] w-full flex-col overflow-hidden">
+    <PahingaHeader />
+    <main id="scroller"
+          class="relative flex-1 overflow-y-auto overscroll-contain [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_20px)] [mask-image:linear-gradient(to_bottom,transparent,#000_20px)]">
+      <PahingaOrb />
+      <PahingaChatThread />
+    </main>
+    <PahingaComposer />
+  </div>
+
+  <script src="../scripts/chat.js"></script>
+</PahingaLayout>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-[#e8f5f3]">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#e8f5f3" />
+  <title>Pahinga</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN (pinned) -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Figtree', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          boxShadow: {
+            bubble: '0 14px 32px -18px rgba(19,78,74,.35), 0 2px 8px rgba(19,78,74,.05)',
+            composer: '0 14px 38px -14px rgba(20,184,166,.38), 0 2px 10px rgba(19,78,74,.06)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Custom CSS: only what Tailwind can't express (orb, breathing, listening rings, message entrance) -->
+  <style>
+    /* ---------- Orb ---------- */
+    .orb {
+      position: relative;
+      overflow: hidden;
+      border-radius: 9999px;
+      background:
+        radial-gradient(circle closest-side at 50% 50%,
+          #fff 0 7%, rgba(255,255,255,.92) 9%, rgba(204,255,232,.7) 15%, rgba(204,255,232,0) 34%),
+        radial-gradient(circle closest-side at 50% 50%,
+          #9be8d2 0%, #56cabd 26%, #35a8aa 50%, #287f8d 76%, #1c5866 100%);
+      animation: breathe 9s ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+    .orb::before { /* slow drifting swirl for depth */
+      content: "";
+      position: absolute;
+      inset: -20%;
+      border-radius: 9999px;
+      background: conic-gradient(from 20deg,
+        rgba(255,255,255,0), rgba(255,255,255,.3) 12%, rgba(15,70,85,0) 30%,
+        rgba(255,255,255,.2) 55%, rgba(15,70,85,.28) 75%, rgba(255,255,255,0));
+      filter: blur(18px);
+      mix-blend-mode: soft-light;
+      opacity: .7;
+      animation: orb-drift 48s linear infinite;
+    }
+    .orb--still { animation: none; }
+    .orb--still::before { display: none; }
+
+    .orb-shell { position: relative; isolation: isolate; }
+    .orb-shell::before { /* soft outer glow */
+      content: "";
+      position: absolute;
+      inset: -24%;
+      z-index: -1;
+      border-radius: 9999px;
+      background: radial-gradient(circle closest-side,
+        rgba(94,234,212,.5) 0%, rgba(94,234,212,.32) 62%, rgba(94,234,212,0) 100%);
+      animation: breathe-glow 9s ease-in-out infinite;
+    }
+
+    /* 9s loop: inhale ~4s, brief hold ~1s, exhale ~4s */
+    @keyframes breathe {
+      0%, 100% { transform: scale(.9);  opacity: .88; }
+      44%, 56% { transform: scale(1.04); opacity: 1; }
+    }
+    @keyframes breathe-glow {
+      0%, 100% { transform: scale(.88); opacity: .55; }
+      44%, 56% { transform: scale(1.08); opacity: 1; }
+    }
+    @keyframes orb-drift { to { transform: rotate(360deg); } }
+
+    /* ---------- Listening rings (mic) ---------- */
+    .listen-ring { position: absolute; inset: 0; border-radius: 9999px; pointer-events: none; }
+    .listen-ring::before,
+    .listen-ring::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 2px solid rgba(45, 212, 191, .75);
+      opacity: 0;
+    }
+    .mic[data-listening="true"] .listen-ring::before { animation: listen-ring 1.9s ease-out infinite; }
+    .mic[data-listening="true"] .listen-ring::after  { animation: listen-ring 1.9s ease-out .95s infinite; }
+    @keyframes listen-ring {
+      0%   { transform: scale(1); opacity: .7; }
+      100% { transform: scale(2.1); opacity: 0; }
+    }
+
+    /* ---------- Message entrance ---------- */
+    .msg-in { animation: msg-in .55s cubic-bezier(.22, 1, .36, 1) both; }
+    @keyframes msg-in {
+      from { opacity: 0; transform: translateY(12px) scale(.98); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes msg-fade { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ---------- Reduced motion ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      .orb, .orb::before, .orb-shell::before { animation: none; }
+      .msg-in { animation: msg-fade .3s ease both; }
+      .mic[data-listening="true"] .listen-ring::before { animation: none; opacity: .5; transform: scale(1.3); }
+      .mic[data-listening="true"] .listen-ring::after  { animation: none; opacity: 0; }
+    }
+  </style>
+</head>
+
+<body class="flex min-h-dvh items-center justify-center bg-[linear-gradient(115deg,#e4f6f2_0%,#eef8f6_48%,#e8ebf9_100%)] font-sans text-teal-950 antialiased [-webkit-tap-highlight-color:transparent] sm:p-4">
+
+  <div id="app"
+       class="relative flex h-[var(--app-h,100dvh)] w-full max-w-[440px] flex-col overflow-hidden sm:h-[min(880px,calc(100dvh-2rem))] sm:rounded-[2.5rem] sm:bg-white/30 sm:shadow-[0_40px_90px_-40px_rgba(19,78,74,.45)] sm:ring-1 sm:ring-white/70">
+
+    <!-- ===== Header ===== -->
+    <header class="flex items-center justify-between px-5 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
+      <div class="flex items-center gap-3">
+        <span class="orb orb--still size-9 shrink-0 shadow-[0_4px_14px_-4px_rgba(20,184,166,.6)]" aria-hidden="true"></span>
+        <h1 class="text-2xl font-semibold tracking-tight text-teal-950">Pahinga</h1>
+      </div>
+      <button id="end-session" type="button"
+              class="min-h-10 rounded-full px-3.5 text-[0.95rem] font-medium text-teal-800 transition-colors hover:bg-white/60 hover:text-teal-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+        End session
+      </button>
+    </header>
+
+    <!-- ===== Chat / breathing area ===== -->
+    <main id="scroller"
+          class="relative flex-1 overflow-y-auto overscroll-contain [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_20px)] [mask-image:linear-gradient(to_bottom,transparent,#000_20px)]">
+
+      <div id="orb-stage" data-collapsed="false"
+           class="group/stage flex flex-col items-center px-6 pb-8 pt-6 transition-[padding] duration-700 ease-out data-[collapsed=true]:pb-3 motion-reduce:transition-none">
+        <div id="orb-shell" aria-hidden="true"
+             class="orb-shell mt-6 size-[min(54vw,232px)] shrink-0 transition-[width,height,margin] duration-[800ms] ease-[cubic-bezier(.4,0,.2,1)] group-data-[collapsed=true]/stage:mt-1 group-data-[collapsed=true]/stage:size-14 motion-reduce:transition-none">
+          <div class="orb size-full"></div>
+        </div>
+        <p id="orb-caption"
+           class="mt-9 max-h-10 overflow-hidden text-center text-[1.05rem] font-medium text-teal-700 transition-[opacity,max-height,margin] duration-500 ease-out group-data-[collapsed=true]/stage:mt-0 group-data-[collapsed=true]/stage:max-h-0 group-data-[collapsed=true]/stage:opacity-0 motion-reduce:transition-none">
+          Inhale gently... drop your shoulders.
+        </p>
+      </div>
+
+      <div id="thread" role="log" aria-live="off" aria-relevant="additions" aria-label="Conversation"
+           class="flex flex-col gap-4 px-5 pb-6"></div>
+    </main>
+
+    <!-- ===== Composer ===== -->
+    <footer class="relative px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+      <div id="status" role="status" aria-live="polite" data-show="false"
+           class="pointer-events-none absolute bottom-full left-1/2 mb-2 w-max max-w-[calc(100%-2.5rem)] -translate-x-1/2 rounded-full bg-teal-950 px-4 py-2 text-center text-sm text-white opacity-0 shadow-lg transition-opacity duration-300 data-[show=true]:opacity-100 motion-reduce:transition-none"></div>
+
+      <form id="composer" data-typing="false" autocomplete="off"
+            class="group/composer flex items-end gap-2 rounded-[1.75rem] bg-white/80 p-2 pl-5 shadow-composer ring-1 ring-white/80 backdrop-blur-xl transition-shadow focus-within:ring-2 focus-within:ring-teal-400/70">
+        <label for="message" class="sr-only">Message Pahinga</label>
+        <textarea id="message" rows="1" enterkeyhint="send" autocapitalize="sentences" spellcheck="true"
+                  placeholder="Speak or type freely... you are safe here."
+                  class="block max-h-[7.5rem] min-h-11 w-full resize-none overflow-y-hidden bg-transparent py-2.5 text-base leading-6 text-teal-950 placeholder:text-teal-800/80 focus:outline-none"></textarea>
+
+        <!-- Mic and send share one slot; they swap while typing -->
+        <div class="relative size-11 shrink-0">
+          <button id="mic-btn" type="button" data-listening="false" aria-pressed="false" aria-label="Start voice input"
+                  class="mic absolute inset-0 grid place-items-center rounded-full bg-teal-600 text-white shadow-[0_8px_18px_-8px_rgba(13,148,136,.8)] transition-[opacity,transform,visibility,background-color] duration-200 hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 data-[listening=true]:bg-teal-700 group-data-[typing=true]/composer:invisible group-data-[typing=true]/composer:scale-75 group-data-[typing=true]/composer:opacity-0 motion-reduce:transition-none">
+            <span class="listen-ring" aria-hidden="true"></span>
+            <svg viewBox="0 0 24 24" class="relative size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path>
+            </svg>
+          </button>
+
+          <button id="send-btn" type="submit" aria-label="Send message" disabled
+                  class="absolute inset-0 grid scale-75 place-items-center rounded-full bg-teal-600 text-white opacity-0 invisible shadow-[0_8px_18px_-8px_rgba(13,148,136,.8)] transition-[opacity,transform,visibility,background-color] duration-200 hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-teal-300 disabled:shadow-none group-data-[typing=true]/composer:visible group-data-[typing=true]/composer:scale-100 group-data-[typing=true]/composer:opacity-100 motion-reduce:transition-none">
+            <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 19V5M5 12l7-7 7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-3 text-center text-xs text-teal-900/75">Pahinga is powered by AI and can make mistakes.</p>
+    </footer>
+  </div>
+
+  <!-- ===== Message templates ===== -->
+  <template id="tpl-ai">
+    <article class="msg-in flex justify-start">
+      <div class="max-w-[90%] rounded-[1.75rem] bg-white/85 px-5 pb-2.5 pt-4 shadow-bubble ring-1 ring-white/80 backdrop-blur-sm">
+        <p class="text-[1.05rem] leading-[1.6]"><span class="sr-only">Pahinga: </span><span class="msg-text"></span></p>
+        <button type="button" data-speaking="false"
+                class="voice-btn group/voice -ml-2 mt-2 inline-flex min-h-10 items-center gap-2.5 rounded-full px-3 text-[0.95rem] font-medium text-teal-800 transition-colors hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 data-[speaking=true]:bg-teal-50">
+          <svg viewBox="0 0 24 24" class="size-5 group-data-[speaking=true]/voice:hidden" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 9v6M8 5v14M12 8v8M16 4v16M20 9v6"></path>
+          </svg>
+          <svg viewBox="0 0 24 24" class="hidden size-5 group-data-[speaking=true]/voice:block" fill="currentColor" aria-hidden="true">
+            <rect x="6" y="6" width="12" height="12" rx="2.5"></rect>
+          </svg>
+          <span class="voice-label">Hear voice</span>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-user">
+    <article class="msg-in flex justify-end">
+      <div class="max-w-[86%] rounded-[1.75rem] bg-white/90 px-5 py-4 shadow-bubble ring-1 ring-white/80">
+        <p class="text-[1.05rem] leading-[1.6]"><span class="sr-only">You: </span><span class="msg-text whitespace-pre-wrap break-words"></span></p>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-typing">
+    <article class="msg-in flex justify-start">
+      <div class="flex items-center gap-1.5 rounded-[1.75rem] bg-white/85 px-5 py-4 shadow-bubble ring-1 ring-white/80">
+        <span class="sr-only">Pahinga is typing</span>
+        <span class="size-2 animate-pulse rounded-full bg-teal-500 motion-reduce:animate-none" aria-hidden="true"></span>
+        <span class="size-2 animate-pulse rounded-full bg-teal-500 [animation-delay:200ms] motion-reduce:animate-none" aria-hidden="true"></span>
+        <span class="size-2 animate-pulse rounded-full bg-teal-500 [animation-delay:400ms] motion-reduce:animate-none" aria-hidden="true"></span>
+      </div>
+    </article>
+  </template>
+
+  <script id="app-js">
+    (() => {
+      'use strict';
+
+      /* ================= Config ================= */
+      const SPEECH_LANG = 'en-US';      // e.g. 'en-PH' or 'fil-PH' if your target browsers support it
+      const GREETING = 'I’m right here. Take a breath first — slowly, there’s no rush here. What are you feeling right now?';
+      const DEFAULT_PLACEHOLDER = 'Speak or type freely... you are safe here.';
+      const MAX_INPUT_HEIGHT = 120;     // px (about 5 lines)
+
+      /* ================= Elements ================= */
+      const $ = (id) => document.getElementById(id);
+      const app = $('app');
+      const scroller = $('scroller');
+      const thread = $('thread');
+      const stage = $('orb-stage');
+      const orbShell = $('orb-shell');
+      const caption = $('orb-caption');
+      const form = $('composer');
+      const input = $('message');
+      const micBtn = $('mic-btn');
+      const sendBtn = $('send-btn');
+      const statusEl = $('status');
+      const endBtn = $('end-session');
+      const templates = {
+        ai: $('tpl-ai'),
+        user: $('tpl-user'),
+        typing: $('tpl-typing'),
+      };
+
+      /* ================= State ================= */
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+      const history = [];        // [{ role: 'user' | 'assistant', content }]
+      let sessionId = 0;         // bumps on "End session" so stale replies are dropped
+      let replying = false;
+      let listening = false;
+      let recognizer = null;
+      let fallbackTimer = null;
+      let statusTimer = null;
+      let baseText = '';
+      let currentUtterance = null;
+      let currentVoiceBtn = null;
+      let pinned = true;
+
+      /* ================= AI reply (placeholder) =================
+         Swap this for your backend call, e.g.:
+           const res = await fetch('/api/chat', { method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ messages: history }) });
+           return (await res.json()).reply;
+      ============================================================ */
+      const PLACEHOLDER_REPLIES = [
+        'Thank you for telling me. Feeling afraid doesn’t cancel out your strength — they can sit side by side. What feels heaviest in this moment?',
+        'I hear you. You don’t have to hold everything together here. Would it help to say a little more about what’s weighing on you?',
+        'That makes sense. Let’s go slowly — take one more easy breath, then tell me what comes up when you do.',
+      ];
+      // TODO: replace with real crisis handling and verified local hotline numbers before launch.
+      const CRISIS_PATTERN = /\b(kill myself|end my life|suicid\w*|self[- ]?harm|hurt myself|want to die|don'?t want to live)\b/i;
+      const CRISIS_REPLY = 'I’m really glad you told me, and I’m taking it seriously. You deserve support from a real person right now — please contact your local emergency number or a crisis line in your area, or someone you trust who can be with you. I’m here too. Are you safe right now?';
+      const ERROR_REPLY = 'Something got in the way on my end. Take a breath, and try sending that again in a moment.';
+      let replyIndex = 0;
+
+      async function getAIReply(text /*, history */) {
+        await new Promise((r) => setTimeout(r, 1100 + Math.random() * 900));
+        if (CRISIS_PATTERN.test(text)) return CRISIS_REPLY;
+        return PLACEHOLDER_REPLIES[replyIndex++ % PLACEHOLDER_REPLIES.length];
+      }
+
+      /* ================= Helpers ================= */
+      function scrollToBottom() {
+        requestAnimationFrame(() => {
+          scroller.scrollTo({ top: scroller.scrollHeight, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+        });
+      }
+
+      function showStatus(message, ms = 3200) {
+        clearTimeout(statusTimer);
+        statusEl.textContent = message;
+        statusEl.dataset.show = 'true';
+        statusTimer = setTimeout(() => { statusEl.dataset.show = 'false'; }, ms);
+      }
+
+      function autoResize() {
+        input.style.height = 'auto';
+        const next = Math.min(input.scrollHeight, MAX_INPUT_HEIGHT);
+        input.style.height = next + 'px';
+        input.style.overflowY = input.scrollHeight > MAX_INPUT_HEIGHT ? 'auto' : 'hidden';
+      }
+
+      function syncComposer() {
+        const hasText = input.value.trim().length > 0;
+        form.dataset.typing = String(hasText && !listening);
+        sendBtn.disabled = replying || !hasText;
+      }
+
+      function collapseOrb() {
+        if (stage.dataset.collapsed === 'true') return;
+        stage.dataset.collapsed = 'true';
+        caption.setAttribute('aria-hidden', 'true');
+      }
+
+      function expandOrb() {
+        stage.dataset.collapsed = 'false';
+        caption.removeAttribute('aria-hidden');
+      }
+
+      /* ================= Messages ================= */
+      function addMessage(role, text, { animate = true, track = true } = {}) {
+        const node = templates[role].content.firstElementChild.cloneNode(true);
+        node.querySelector('.msg-text').textContent = text;
+        if (!animate) node.classList.remove('msg-in');
+        if (role === 'ai' && !canSpeak) node.querySelector('.voice-btn').remove();
+        thread.append(node);
+        if (track) history.push({ role: role === 'ai' ? 'assistant' : 'user', content: text });
+        scrollToBottom();
+        return node;
+      }
+
+      function showTyping() {
+        const node = templates.typing.content.firstElementChild.cloneNode(true);
+        thread.append(node);
+        scrollToBottom();
+        return node;
+      }
+
+      async function send() {
+        const text = input.value.trim();
+        if (!text || replying) return;
+
+        stopListening();
+        stopVoice();
+        collapseOrb();
+        addMessage('user', text);
+
+        input.value = '';
+        autoResize();
+        replying = true;
+        syncComposer();
+        input.focus({ preventScroll: true });
+
+        const sid = sessionId;
+        const typingNode = showTyping();
+        try {
+          const reply = await getAIReply(text, history);
+          if (sid !== sessionId) return;
+          typingNode.remove();
+          addMessage('ai', reply);
+        } catch (err) {
+          console.error(err);
+          if (sid !== sessionId) return;
+          typingNode.remove();
+          addMessage('ai', ERROR_REPLY);
+        } finally {
+          if (sid === sessionId) {
+            replying = false;
+            syncComposer();
+          }
+        }
+      }
+
+      /* ================= Text to speech ================= */
+      function setSpeaking(btn, on) {
+        btn.dataset.speaking = String(on);
+        btn.querySelector('.voice-label').textContent = on ? 'Stop voice' : 'Hear voice';
+      }
+
+      function stopVoice() {
+        if (!canSpeak) return;
+        const btn = currentVoiceBtn;
+        currentUtterance = null;
+        currentVoiceBtn = null;
+        if (btn) setSpeaking(btn, false);
+        window.speechSynthesis.cancel();
+      }
+
+      function toggleVoice(btn) {
+        if (!canSpeak) return;
+        if (currentVoiceBtn === btn) { stopVoice(); return; }
+        stopVoice();
+        stopListening();
+
+        const text = btn.closest('article').querySelector('.msg-text').textContent;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = SPEECH_LANG;
+        utterance.rate = 0.92;
+        utterance.pitch = 1;
+
+        const finish = () => {
+          if (currentUtterance !== utterance) return;
+          setSpeaking(btn, false);
+          currentUtterance = null;
+          currentVoiceBtn = null;
+        };
+        utterance.onend = finish;
+        utterance.onerror = finish;
+
+        currentUtterance = utterance;   // keep a reference so it isn't garbage-collected mid-speech
+        currentVoiceBtn = btn;
+        setSpeaking(btn, true);
+        window.speechSynthesis.speak(utterance);
+      }
+
+      thread.addEventListener('click', (e) => {
+        const btn = e.target.closest('.voice-btn');
+        if (btn) toggleVoice(btn);
+      });
+
+      /* ================= Speech to text ================= */
+      function setListening(on) {
+        listening = on;
+        micBtn.dataset.listening = String(on);
+        micBtn.setAttribute('aria-pressed', String(on));
+        micBtn.setAttribute('aria-label', on ? 'Stop voice input' : 'Start voice input');
+        input.placeholder = on ? 'Listening... go ahead, I’m here.' : DEFAULT_PLACEHOLDER;
+        syncComposer();
+      }
+
+      function startListening() {
+        stopVoice();
+
+        // Fallback: no SpeechRecognition support -> brief listening state, then hand back to typing.
+        if (!SpeechRecognitionCtor) {
+          setListening(true);
+          showStatus('Voice input isn’t available in this browser. You can type instead.');
+          fallbackTimer = setTimeout(() => {
+            setListening(false);
+            input.focus();
+          }, 2200);
+          return;
+        }
+
+        const rec = new SpeechRecognitionCtor();
+        rec.lang = SPEECH_LANG;
+        rec.interimResults = true;
+        rec.continuous = false;
+        rec.maxAlternatives = 1;
+        baseText = input.value.trim() ? input.value.trimEnd() + ' ' : '';
+
+        rec.onstart = () => setListening(true);
+        rec.onresult = (event) => {
+          let transcript = '';
+          for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
+          input.value = baseText + transcript;
+          autoResize();
+          syncComposer();
+        };
+        rec.onerror = (event) => {
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            showStatus('Microphone access is blocked. Allow it in your browser settings to use voice.', 4500);
+          } else if (event.error === 'no-speech') {
+            showStatus('I didn’t catch that. Tap the mic and try again.');
+          } else if (event.error !== 'aborted') {
+            showStatus('Voice input stopped unexpectedly. You can type instead.');
+          }
+        };
+        rec.onend = () => {
+          if (recognizer === rec) recognizer = null;
+          setListening(false);
+          input.focus();
+        };
+
+        recognizer = rec;
+        try {
+          rec.start();
+        } catch (err) {
+          recognizer = null;
+          setListening(false);
+        }
+      }
+
+      function stopListening() {
+        clearTimeout(fallbackTimer);
+        if (recognizer) {
+          try { recognizer.stop(); } catch (err) { /* already stopped */ }
+        } else if (listening) {
+          setListening(false);
+        }
+      }
+
+      micBtn.addEventListener('click', () => (listening ? stopListening() : startListening()));
+
+      /* ================= Composer events ================= */
+      input.addEventListener('input', () => { autoResize(); syncComposer(); });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+          e.preventDefault();           // Enter sends, Shift+Enter inserts a newline
+          send();
+        } else if (e.key === 'Escape') {
+          stopListening();
+        }
+      });
+
+      form.addEventListener('submit', (e) => { e.preventDefault(); send(); });
+
+      /* ================= Session ================= */
+      function endSession() {
+        sessionId++;
+        stopListening();
+        stopVoice();
+        replying = false;
+        history.length = 0;
+        thread.replaceChildren();
+        input.value = '';
+        autoResize();
+        syncComposer();
+        expandOrb();
+        scroller.scrollTo({ top: 0 });
+        addMessage('ai', GREETING);
+        showStatus('Session ended. Take care of yourself.');
+      }
+      endBtn.addEventListener('click', endSession);
+
+      /* ================= Layout niceties ================= */
+      // Keep the latest message in view after the orb finishes collapsing.
+      stage.addEventListener('transitionend', (e) => {
+        if (e.target === orbShell && e.propertyName === 'height') scrollToBottom();
+      });
+
+      // Stay pinned to the bottom when the composer grows or the keyboard opens.
+      scroller.addEventListener('scroll', () => {
+        pinned = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80;
+      }, { passive: true });
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(() => { if (pinned) scroller.scrollTop = scroller.scrollHeight; }).observe(scroller);
+      }
+
+      // Mobile keyboards: size the app to the visual viewport.
+      if (window.visualViewport) {
+        const fit = () => app.style.setProperty('--app-h', window.visualViewport.height + 'px');
+        window.visualViewport.addEventListener('resize', fit);
+        fit();
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { stopVoice(); stopListening(); }
+      });
+
+      window.addEventListener('pagehide', () => {
+        stopVoice();
+        if (recognizer) { try { recognizer.abort(); } catch (err) { /* noop */ } }
+      });
+
+      /* ================= Init ================= */
+      addMessage('ai', GREETING, { animate: false });
+      thread.setAttribute('aria-live', 'polite');   // announce only what arrives after load
+      scroller.scrollTop = 0;
+      autoResize();
+      syncComposer();
+    })();
+  </script>
+</body>
+</html>
