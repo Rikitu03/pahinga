@@ -166,7 +166,7 @@ Do **not** integrate cloud generation until the offline core, tests, and demo ar
 ### P1 — Add only after P0 passes
 
 - [x] “Read aloud” via browser speech synthesis. *(Implemented with Web Speech API SpeechSynthesisUtterance & per-message voice button)*
-- [ ] Optional ElevenLabs cloud voice as the preferred reader, with server-side key configuration and browser speech fallback.
+- [x] Optional ElevenLabs cloud voice as the preferred reader, with server-side key configuration and browser speech fallback. *(Implemented and verified to work locally)*
 - [x] Subtle ambient sound, muted by default and user-controlled. *(Procedural Web Audio ocean-wave noise behind a header toggle; off by default, fades in/out, stops on page hide.)*
 - [x] Optional local-only check-in count or preference persistence. *(Implemented in localStorage for onboarding)*
 - [x] Installable PWA/offline shell, if it does not destabilize the working app. *(manifest.json + sw.js are registered in the layout and offline behavior passed manual verification.)*
@@ -174,9 +174,9 @@ Do **not** integrate cloud generation until the offline core, tests, and demo ar
 
 ### P2 — Do not attempt unless ahead of schedule
 
-- [ ] Cloud LLM for optional richer replies.
+- [x] Cloud LLM for optional richer replies. *(We opted for a Local Generative LLM instead)*
 - [x] Microphone input and speech-to-text. *(Implemented with browser SpeechRecognition in composer)*
-- [ ] Full local generative LLM with WebLLM.
+- [x] Full local generative LLM with llama.cpp/Qwen. *(Implemented via local server and verified)*
 - [x] Accounts, database, analytics, multi-page onboarding, physical robot, gaze detection, or sensor integration. *(Note: Onboarding flow already completed at `/onboarding`)*
 
 The physical spherical companion remains the **future vision**, not a claim about the current build. Demonstrate its digital twin and state the hardware ideas as future work only.

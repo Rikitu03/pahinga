@@ -3,8 +3,17 @@ function initPahingaChat() {
 
   /* ================= Config ================= */
   const SPEECH_LANG = 'en-US';      // e.g. 'en-PH' or 'fil-PH' if your target browsers support it
-  const GREETING = 'I’m right here. Take a breath first — slowly, there’s no rush here. What are you feeling right now?';
+  const GREETING = "Hey... how's your day going? Is everything all right?";
   const DEFAULT_PLACEHOLDER = 'Speak or type freely... you are safe here.';
+
+  const PRE_POPULATED_AUDIO = {
+    "Hey... how's your day going? Is everything all right?": "/audio/welcome.mp3",
+    "When you're exhausted, that inner voice convinces you that you're lacking. But you've built real things with very little support. Take a slow breath... What happened today that made you feel like you aren't enough?": "/audio/was_talented.mp3",
+    "I hear you, and it's completely okay that you feel low today. You don't have to force a smile or pretend to be fine. Take a gentle breath... Did something specific happen, or is it just the weight of everything catching up with you?": "/audio/so_down.mp3",
+    "Comparing your backstage to everyone else's highlight reel will always feel like a trap. You are carrying a heavy backpack they don't have to carry. Drop your shoulders for a moment... Who or what were you comparing yourself to today?": "/audio/only_asgood.mp3",
+    "When the burden feels like a 20-story climb, even breathing feels like work. You don't have to solve tomorrow right this second. Take a soft exhale with me... What is sitting as the heaviest piece on your chest right now?": "/audio/feels_heavy.mp3",
+    "You have been running on empty for so long trying to hold everything together. Take a slow, soft breath with me... What has been draining your energy the most lately?": "/audio/burnt_out.mp3"
+  };
   const MAX_INPUT_HEIGHT = 120;     // px (about 5 lines)
 
   /* ================= Elements ================= */
@@ -50,7 +59,10 @@ function initPahingaChat() {
   let sessionId = 0;         // bumps on "End session" so stale replies are dropped
   let replying = false;
   let listening = false;
+  let userWantsMic = false;
   let recognizer = null;
+  let micRestartTimer = null;
+  let typingDebounceTimer = null;
   let fallbackTimer = null;
   let statusTimer = null;
   let baseText = '';
@@ -58,16 +70,51 @@ function initPahingaChat() {
   let currentVoiceBtn = null;
   let currentAudio = null;
   let currentAudioUrl = null;
+  const dynamicAudioCache = new Map(); // text -> blob Object URL
   let voiceRunId = 0;
   let pinned = true;
-  let voiceAutoRead = false;
+  let voiceAutoRead = true;
   let orbPaused = false;
+
+  const sharedAudio = new Audio();
+  let audioBlessed = false;
+  function blessAudio() {
+    if (audioBlessed) return;
+    audioBlessed = true;
+    sharedAudio.play().catch(() => {});
+  }
+  document.addEventListener('click', blessAudio, { once: true });
+  document.addEventListener('keydown', blessAudio, { once: true });
 
   /* ================= Local AI & Response Engine ================= */
   let classifier = null;
   let modelLoading = false;
   let modelReady = false;
   let modelFailed = false;
+  let qwenUnavailableUntil = 0;
+
+  function getOnboardingContext() {
+    try {
+      const raw = localStorage.getItem('pahinga_user_data');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return null;
+
+      const clean = (value, max) => typeof value === 'string'
+        ? value.trim().slice(0, max)
+        : '';
+      const profile = {
+        name: clean(data.name, 80),
+        country: clean(data.country, 100),
+        about: clean(data.about, 300),
+      };
+
+      return profile.name || profile.country || profile.about ? profile : null;
+    } catch (err) {
+      console.info('[Pahinga] Onboarding context unavailable; continuing without profile.', err);
+      return null;
+    }
+  }
 
   function updateAIBadge(status, percent = null) {
     if (!aiBadge || !aiBadgeDot || !aiBadgeText) return;
@@ -164,56 +211,43 @@ function initPahingaChat() {
   // Dedicated responses for the 5 active feeling chips in the current build
   const CHIP_RESPONSES = {
     burnt_out: [
-      'Burnout is your body and mind telling you it’s time to stop pushing. You don’t have to prove anything or accomplish anything here. Would you like to take one slow, easy breath with the circle?',
-      'When you’ve run on empty for too long, even small steps feel exhausting. You are allowed to simply exist and rest right now. What is one pressure you can set down for the next few minutes?',
-      'Pahinga muna sandali. Hindi mo kailangang patunayan ang sarili mo sa bawat segundo. Subukan nating huminga nang malalim kasabay ng bilog.'
+      "You have been running on empty for so long trying to hold everything together. Take a slow, soft breath with me... What has been draining your energy the most lately?"
     ],
     talented: [
-      'It’s so painful when you feel like you’re falling short, but comparison hides all the quiet effort you’ve given. You are allowed to learn and grow at your own pace. Would it help to drop your shoulders and take a slow breath?',
-      'Your worth as a person doesn’t depend on how effortless things seem for others. You carry your own unique value. What is one small, kind thing you can tell yourself right now?',
-      'Madalas nating ikumpara ang simula natin sa tagumpay ng iba. May sarili kang bilis at halaga. Huminga tayo nang dahan-dahan, nandito lang ako.'
+      "When you're exhausted, that inner voice convinces you that you're lacking. But you've built real things with very little support. Take a slow breath... What happened today that made you feel like you aren't enough?"
     ],
     comparison: [
-      'Measuring your inside against everyone else’s outside will always feel unfair to you. You don’t have to keep up with the whole world in this space. Would you like to take an unhurried breath together?',
-      'It is exhausting to constantly measure yourself against others. You have your own story, and you are allowed to move gently. What would feel most soothing for you in this moment?',
-      'Nakakapagod makipaghabulan sa mundo. Dito sa Pahinga, sapat ka kung sino ka ngayon. Gusto mo bang huminga nang marahan?'
+      "Comparing your backstage to everyone else's highlight reel will always feel like a trap. You are carrying a heavy backpack they don't have to carry. Drop your shoulders for a moment... Who or what were you comparing yourself to today?"
     ],
     down: [
-      'I hear you, and it’s okay that you feel this way. You don’t have to force a smile or pretend you’re okay in this sanctuary. Would you like to take one quiet breath with the circle, or just sit here for a while?',
-      'Heavy days come, and feeling down doesn’t mean you’ve failed at anything. I’m right here beside you. What does your body feel like it needs most right now?',
-      'Ayos lang kahit hindi ka okay ngayon. Hindi mo kailangang magpanggap dito. Samahan kita, huminga tayo nang payapa.'
+      "I hear you, and it's completely okay that you feel low today. You don't have to force a smile or pretend to be fine. Take a gentle breath... Did something specific happen, or is it just the weight of everything catching up with you?"
     ],
     heavy: [
-      'That sounds like a lot to carry all at once. You don’t have to carry every single piece of it by yourself right this second. Would it help to take one slow breath and let your jaw loosen?',
-      'When everything feels heavy, even deciding what to do next is exhausting. Let’s make this space as simple as possible. What is the smallest thing you need from this moment?',
-      'Napakabigat nga niyan dalhin nang mag-isa. Bitiwan mo muna ang ibang pasanin kahit sa ilang minuto lang. Inhale nang dahan-dahan... at exhale.'
+      "When the burden feels like a 20-story climb, even breathing feels like work. You don't have to solve tomorrow right this second. Take a soft exhale with me... What is sitting as the heaviest piece on your chest right now?"
     ]
   };
 
   // Keyword-based emotional intent routing
   const INTENT_PATTERNS = [
     {
-      regex: /\b(tired|exhausted|sleep|can'?t sleep|insomnia|drained|weary|fatigue|pagod|antok)\b/i,
+      regex: /\b(tired|exhausted|sleep|can'?t sleep|insomnia|drained|weary|fatigue)\b/i,
       replies: [
         'Exhaustion reaches deep into the bones. You don’t need to push through another thing right now. Would it help to close your eyes and take one soft breath with the circle?',
-        'Your mind has been running hard. It makes complete sense that you feel drained. Would you like to pause here and rest for a moment?',
-        'Ramdam ko ang pagod mo. Pahinga muna ang isip at katawan. Huminga tayo nang banayad kasama ng bilog.'
+        'Your mind has been running hard. It makes complete sense that you feel drained. Would you like to pause here and rest for a moment?'
       ]
     },
     {
-      regex: /\b(anxious|anxiety|panic|overwhelm\w*|scared|afraid|stress\w*|pressure|nervous|kaba|takot)\b/i,
+      regex: /\b(anxious|anxiety|panic|overwhelm\w*|scared|afraid|stress\w*|pressure|nervous)\b/i,
       replies: [
         'When anxiety or tension builds up, everything feels urgent. But right here, nothing is asking anything from you. Would it help to take a slow 4-second breath with the circle?',
-        'I hear the pressure you’re under. Let’s take this one second at a time. What is one small thing in the room around you that feels steady right now?',
-        'Huminahon ka muna, walang humahabol sa atin. Dahan-dahan lang, isa-isang segundo. Subukan nating huminga nang malalim.'
+        'I hear the pressure you’re under. Let’s take this one second at a time. What is one small thing in the room around you that feels steady right now?'
       ]
     },
     {
-      regex: /\b(lonely|alone|nobody|isolated|no one understands|empty|mag-isa|lungkot)\b/i,
+      regex: /\b(lonely|alone|nobody|isolated|no one understands|empty)\b/i,
       replies: [
         'Feeling isolated in a noisy world can be so heavy. Even in quietness, you are not invisible here. Would it help to sit together and take one gentle breath?',
-        'I’m glad you reached out, even with just a few words. You don’t have to face this completely alone. How does your chest feel right now?',
-        'Kahit tahimik ang paligid, hindi ka nag-iisa rito. Nandito ako para makinig at samahan ka.'
+        'I’m glad you reached out, even with just a few words. You don’t have to face this completely alone. How does your chest feel right now?'
       ]
     }
   ];
@@ -224,20 +258,17 @@ function initPahingaChat() {
       'That sounds like a lot to carry at once. Would it help to take one slow breath with the circle?',
       'I hear you. You don’t have to hold everything together here. What is the smallest thing you need from this moment?',
       'It makes sense that you feel that way. Let’s take things one moment at a time. Would you like to pause and breathe with me?',
-      'Thank you for sharing that with me. It’s okay to feel worn down. What would feel most comforting for you right now?',
-      'Mabigat man ang pakiramdam ngayon, hindi mo kailangang buhatin ang lahat nang sabay-sabay. Pahinga muna tayo sandali kasabay ng bilog.'
+      'Thank you for sharing that with me. It’s okay to feel worn down. What would feel most comforting for you right now?'
     ],
     POSITIVE: [
       'I’m glad there is a moment of lightness for you today. Would it help to take a gentle breath and simply savor it?',
       'That is really nice to hear. You deserve these calm spaces. How does it feel to pause and take that in?',
-      'Holding onto small moments of relief can be such a quiet strength. What is one thing you’re grateful for right now?',
-      'Nakakagaan sa loob marinig iyan. Karapat-dapat ka sa kapayapaan at ginhawa. Namnamin natin ang sandaling ito.'
+      'Holding onto small moments of relief can be such a quiet strength. What is one thing you’re grateful for right now?'
     ],
     NEUTRAL: [
       'Thank you for telling me. Let’s just take a quiet pause together. How does your body feel right now?',
       'I’m right here with you. There’s no rush to explain or fix anything. What feels most present for you in this moment?',
-      'I hear you. Let’s take one easy, unhurried breath together and see what arises.',
-      'Salamat sa pagbabahagi. Nandito lang ako, walang nagmamadali. Hingang malalim at pakinggan ang sarili.'
+      'I hear you. Let’s take one easy, unhurried breath together and see what arises.'
     ]
   };
 
@@ -289,7 +320,39 @@ function initPahingaChat() {
       }
     }
 
-    // 4. Local Sentiment Classification via On-Device DistilBERT (Transformers.js)
+    // 4. Optional local generative response via llama.cpp/Qwen3.
+    // The endpoint only talks to a localhost runtime; all failures use the existing local path.
+    if (Date.now() >= qwenUnavailableUntil) {
+      try {
+        const recentUserMessages = history
+          .filter((entry) => entry.role === 'user')
+          .slice(-3, -1)
+          .map((entry) => ({ role: 'user', content: entry.content }));
+        const response = await fetch('/api/local-qwen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            context: recentUserMessages,
+            onboarding: getOnboardingContext(),
+          }),
+        });
+        if (response.ok) {
+          const payload = await response.json();
+          const generated = typeof payload?.reply === 'string' ? payload.reply.trim() : '';
+          if (isAcceptableQwenReply(generated)) {
+            await pacePromise;
+            return { text: generated, meta: '✨ Local Qwen3 • llama.cpp' };
+          }
+        }
+        qwenUnavailableUntil = Date.now() + 15000;
+      } catch (err) {
+        qwenUnavailableUntil = Date.now() + 15000;
+        console.info('[Pahinga AI] Local Qwen runtime unavailable; using local fallback.', err);
+      }
+    }
+
+    // 5. Local Sentiment Classification via On-Device DistilBERT (Transformers.js)
     if (modelReady && classifier) {
       try {
         const result = await classifier(text);
@@ -312,7 +375,7 @@ function initPahingaChat() {
       initLocalModel();
     }
 
-    // 5. Fallback template (Zero delay, instant non-clinical reply)
+    // 6. Fallback template (Zero delay, instant non-clinical reply)
     await pacePromise;
     return {
       text: pickRandom(SENTIMENT_TEMPLATES.NEUTRAL),
@@ -322,6 +385,15 @@ function initPahingaChat() {
           ? '🌱 Local Grounding (AI loading...)'
           : '🌱 Local Grounding'
     };
+  }
+
+  function isAcceptableQwenReply(reply) {
+    if (!reply || reply.length > 900) return false;
+    if (reply.includes('```') || /^\s*[-*]\s/m.test(reply)) return false;
+    if (/\b(as an ai|language model|diagnos(?:e|is)|medical advice|you have depression)\b/i.test(reply)) {
+      return false;
+    }
+    return true;
   }
 
   /* ================= Helpers ================= */
@@ -347,7 +419,7 @@ function initPahingaChat() {
 
   function syncComposer() {
     const hasText = input.value.trim().length > 0;
-    form.dataset.typing = String(hasText && !listening);
+    form.dataset.typing = String(hasText);
     sendBtn.disabled = replying || !hasText;
   }
 
@@ -486,19 +558,59 @@ function initPahingaChat() {
   }
 
   async function speakWithCloud(text, btn, runId) {
-    const response = await fetch('/api/elevenlabs-voice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    });
-    if (!response.ok) throw new Error('Cloud voice request failed.');
+    const MAX_RETRIES = 1;
+    let response = null;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (voiceRunId !== runId) return;
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 600 * attempt));
+        if (voiceRunId !== runId) return;
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+
+      try {
+        const res = await fetch('/api/elevenlabs-voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+          signal: controller.signal,
+        });
+
+        if (res.ok) {
+          response = res;
+          break;
+        }
+
+        // Retry only on transient rate limit or upstream gateway errors (502, 504, 429)
+        if (res.status === 429 || res.status === 502 || res.status === 504) {
+          continue;
+        }
+
+        throw new Error(`Cloud voice rejected with status ${res.status}`);
+      } catch (err) {
+        if (attempt >= MAX_RETRIES) throw err;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error('Cloud voice request failed.');
+    }
 
     const blob = await response.blob();
     if (voiceRunId !== runId) return;
 
     const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    currentAudioUrl = url;
+    dynamicAudioCache.set(text, url);
+
+    const audio = sharedAudio;
+    audio.src = url;
+    audio.playbackRate = 0.96;
+    currentAudioUrl = null; // Do not revoke so dynamicAudioCache can replay without re-fetching
     currentAudio = audio;
     currentVoiceBtn = btn;
     setSpeaking(btn, true);
@@ -506,10 +618,10 @@ function initPahingaChat() {
     const finish = () => {
       if (currentAudio !== audio || voiceRunId !== runId) return;
       currentAudio = null;
-      currentAudioUrl = null;
       currentVoiceBtn = null;
-      URL.revokeObjectURL(url);
       setSpeaking(btn, false);
+      audio.onended = null;
+      audio.onerror = null;
     };
     audio.onended = finish;
     audio.onerror = () => {
@@ -518,8 +630,49 @@ function initPahingaChat() {
       showStatus('Cloud voice playback failed. Using browser voice instead.', 3600);
       speakWithBrowser(text, btn, runId);
     };
-    await audio.play();
-    showStatus('Reply voiced with ElevenLabs.', 2400);
+
+    try {
+      await audio.play();
+      showStatus('Reply voiced with ElevenLabs.', 2400);
+    } catch (e) {
+      finish();
+      console.warn('[Pahinga Voice] Autoplay or playback was prevented:', e);
+      showStatus('Voice ready. Tap "Hear voice" to listen.', 3600);
+    }
+  }
+
+  async function speakWithStaticAudio(url, btn, runId, isCached = false) {
+    const audio = sharedAudio;
+    audio.src = url;
+    audio.playbackRate = 1.0;
+    currentAudioUrl = null;
+    currentAudio = audio;
+    currentVoiceBtn = btn;
+    setSpeaking(btn, true);
+
+    const finish = () => {
+      if (currentAudio !== audio || voiceRunId !== runId) return;
+      currentAudio = null;
+      currentVoiceBtn = null;
+      setSpeaking(btn, false);
+      audio.onended = null;
+      audio.onerror = null;
+    };
+    audio.onended = finish;
+    audio.onerror = () => {
+      if (currentAudio !== audio || voiceRunId !== runId) return;
+      finish();
+      showStatus('Failed to play voice.', 3600);
+    };
+
+    try {
+      await audio.play();
+      showStatus(isCached ? 'Reply voiced with ElevenLabs (cached).' : 'Playing recorded voice.', 2400);
+    } catch (e) {
+      finish();
+      console.warn('[Pahinga Voice] Autoplay or playback was prevented:', e);
+      showStatus('Voice ready. Tap "Hear voice" to listen.', 3600);
+    }
   }
 
   async function toggleVoice(btn) {
@@ -527,11 +680,23 @@ function initPahingaChat() {
     stopVoice();
     stopListening();
 
-    const text = btn.closest('article').querySelector('.msg-text').textContent;
+    const text = btn.closest('article').querySelector('.msg-text').textContent.trim();
     const runId = voiceRunId;
     currentVoiceBtn = btn;
     setSpeaking(btn, true);
     btn.querySelector('.voice-label').textContent = 'Loading voice';
+
+    const staticAudioUrl = PRE_POPULATED_AUDIO[text];
+    if (staticAudioUrl) {
+      await speakWithStaticAudio(staticAudioUrl, btn, runId, false);
+      return;
+    }
+
+    const cachedCloudUrl = dynamicAudioCache.get(text);
+    if (cachedCloudUrl) {
+      await speakWithStaticAudio(cachedCloudUrl, btn, runId, true);
+      return;
+    }
 
     try {
       await speakWithCloud(text, btn, runId);
@@ -565,9 +730,136 @@ function initPahingaChat() {
     listening = on;
     micBtn.dataset.listening = String(on);
     micBtn.setAttribute('aria-pressed', String(on));
-    micBtn.setAttribute('aria-label', on ? 'Stop voice input' : 'Start voice input');
-    input.placeholder = on ? 'Listening... go ahead, I’m here.' : DEFAULT_PLACEHOLDER;
+    micBtn.setAttribute('aria-label', on ? 'Stop voice input (microphone is on)' : 'Start voice input');
+    micBtn.setAttribute('title', on ? 'Stop voice input (click to turn off)' : 'Start voice input');
+    input.placeholder = on ? 'Listening... speak freely, take your time (tap mic to stop).' : DEFAULT_PLACEHOLDER;
     syncComposer();
+  }
+
+  function startRecognitionEngine() {
+    if (!userWantsMic || !SpeechRecognitionCtor) return;
+
+    if (recognizer) {
+      try { recognizer.abort(); } catch (err) { /* noop */ }
+      recognizer = null;
+    }
+
+    let rec;
+    try {
+      rec = new SpeechRecognitionCtor();
+    } catch (err) {
+      console.warn('[Pahinga Mic] Failed to instantiate SpeechRecognition:', err);
+      userWantsMic = false;
+      setListening(false);
+      return;
+    }
+
+    rec.lang = SPEECH_LANG;
+    rec.interimResults = true;
+    rec.continuous = true;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => {
+      if (userWantsMic) {
+        setListening(true);
+      } else {
+        try { rec.stop(); } catch (e) { /* noop */ }
+      }
+    };
+
+    rec.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const item = event.results[i];
+        const piece = item[0].transcript;
+        if (item.isFinal) {
+          if (finalTranscript && !finalTranscript.endsWith(' ') && !piece.startsWith(' ')) {
+            finalTranscript += ' ' + piece;
+          } else {
+            finalTranscript += piece;
+          }
+        } else {
+          if (interimTranscript && !interimTranscript.endsWith(' ') && !piece.startsWith(' ')) {
+            interimTranscript += ' ' + piece;
+          } else {
+            interimTranscript += piece;
+          }
+        }
+      }
+
+      let combined = finalTranscript;
+      if (interimTranscript) {
+        if (combined && !combined.endsWith(' ') && !interimTranscript.startsWith(' ')) {
+          combined += ' ' + interimTranscript;
+        } else {
+          combined += interimTranscript;
+        }
+      }
+
+      combined = combined.trimStart();
+      if (baseText) {
+        const needsSpace = !baseText.endsWith(' ') && !combined.startsWith(' ');
+        input.value = (baseText + (needsSpace && combined ? ' ' : '') + combined).replace(/[ \t]+/g, ' ');
+      } else {
+        input.value = combined;
+      }
+
+      autoResize();
+      syncComposer();
+    };
+
+    rec.onerror = (event) => {
+      console.warn('[Pahinga Mic] Recognition event note:', event.error);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        userWantsMic = false;
+        clearTimeout(micRestartTimer);
+        setListening(false);
+        showStatus('Microphone access is blocked. Allow it in your browser settings to use voice.', 4500);
+      } else if (event.error === 'audio-capture') {
+        userWantsMic = false;
+        clearTimeout(micRestartTimer);
+        setListening(false);
+        showStatus('No microphone detected. Please check your audio inputs.', 4000);
+      }
+      // Note: 'no-speech', 'aborted', and network pauses do not shut off the mic.
+      // In manual mode, users have freedom to pause; silence recovers smoothly in onend.
+    };
+
+    rec.onend = () => {
+      if (recognizer === rec) {
+        recognizer = null;
+      }
+
+      // If the user still wants the mic active, keep it on and seamlessly restart
+      if (userWantsMic) {
+        baseText = input.value.trim() ? input.value.trimEnd() + ' ' : '';
+        clearTimeout(micRestartTimer);
+        micRestartTimer = setTimeout(() => {
+          if (userWantsMic) {
+            startRecognitionEngine();
+          }
+        }, 150);
+      } else {
+        setListening(false);
+        input.focus();
+      }
+    };
+
+    recognizer = rec;
+
+    try {
+      rec.start();
+    } catch (err) {
+      console.warn('[Pahinga Mic] Start attempt deferred:', err);
+      if (userWantsMic) {
+        clearTimeout(micRestartTimer);
+        micRestartTimer = setTimeout(() => {
+          if (userWantsMic) startRecognitionEngine();
+        }, 300);
+      }
+    }
   }
 
   function startListening() {
@@ -575,8 +867,9 @@ function initPahingaChat() {
 
     // Fallback: no SpeechRecognition support -> brief listening state, then hand back to typing.
     if (!SpeechRecognitionCtor) {
+      userWantsMic = false;
       setListening(true);
-      showStatus('Voice input isn’t available in this browser. You can type instead.');
+      showStatus('Voice input isn’t available in this browser. You can type instead.', 4000);
       fallbackTimer = setTimeout(() => {
         setListening(false);
         input.focus();
@@ -584,65 +877,61 @@ function initPahingaChat() {
       return;
     }
 
-    const rec = new SpeechRecognitionCtor();
-    rec.lang = SPEECH_LANG;
-    rec.interimResults = true;
-    rec.continuous = false;
-    rec.maxAlternatives = 1;
+    userWantsMic = true;
+    clearTimeout(micRestartTimer);
+    clearTimeout(typingDebounceTimer);
     baseText = input.value.trim() ? input.value.trimEnd() + ' ' : '';
-
-    rec.onstart = () => setListening(true);
-    rec.onresult = (event) => {
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
-      input.value = baseText + transcript;
-      autoResize();
-      syncComposer();
-    };
-    rec.onerror = (event) => {
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        showStatus('Microphone access is blocked. Allow it in your browser settings to use voice.', 4500);
-      } else if (event.error === 'no-speech') {
-        showStatus('I didn’t catch that. Tap the mic and try again.');
-      } else if (event.error !== 'aborted') {
-        showStatus('Voice input stopped unexpectedly. You can type instead.');
-      }
-    };
-    rec.onend = () => {
-      if (recognizer === rec) recognizer = null;
-      setListening(false);
-      input.focus();
-    };
-
-    recognizer = rec;
-    try {
-      rec.start();
-    } catch (err) {
-      recognizer = null;
-      setListening(false);
-    }
+    setListening(true);
+    showStatus('Microphone is on. Speak freely — tap again when done.', 3200);
+    startRecognitionEngine();
   }
 
-  function stopListening() {
+  function stopListening({ showFeedback = false } = {}) {
+    userWantsMic = false;
+    clearTimeout(micRestartTimer);
+    clearTimeout(typingDebounceTimer);
     clearTimeout(fallbackTimer);
+
     if (recognizer) {
       try { recognizer.stop(); } catch (err) { /* already stopped */ }
-    } else if (listening) {
-      setListening(false);
+      recognizer = null;
+    }
+
+    setListening(false);
+    if (showFeedback) {
+      showStatus('Microphone turned off.', 1800);
     }
   }
 
-  micBtn.addEventListener('click', () => (listening ? stopListening() : startListening()));
+  micBtn.addEventListener('click', () => {
+    if (listening || userWantsMic) {
+      stopListening({ showFeedback: true });
+    } else {
+      startListening();
+    }
+  });
 
   /* ================= Composer events ================= */
-  input.addEventListener('input', () => { autoResize(); syncComposer(); });
+  input.addEventListener('input', () => {
+    if (userWantsMic) {
+      clearTimeout(typingDebounceTimer);
+      typingDebounceTimer = setTimeout(() => {
+        if (userWantsMic && recognizer) {
+          baseText = input.value.trim() ? input.value.trimEnd() + ' ' : '';
+          try { recognizer.stop(); } catch (e) { /* noop */ }
+        }
+      }, 300);
+    }
+    autoResize();
+    syncComposer();
+  });
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
       e.preventDefault();           // Enter sends, Shift+Enter inserts a newline
       send();
     } else if (e.key === 'Escape') {
-      stopListening();
+      stopListening({ showFeedback: true });
     }
   });
 
@@ -671,7 +960,11 @@ function initPahingaChat() {
     syncComposer();
     expandOrb();
     scroller.scrollTo({ top: 0 });
-    addMessage('ai', GREETING);
+    const aiNode = addMessage('ai', GREETING, { meta: 'Offline Sanctuary' });
+    if (voiceAutoRead) {
+      const vBtn = aiNode.querySelector('.voice-btn');
+      if (vBtn) toggleVoice(vBtn);
+    }
     if (feelingChips) feelingChips.style.display = '';
     showStatus('Session ended. Take care of yourself.');
   }
@@ -875,21 +1168,35 @@ function initPahingaChat() {
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { stopVoice(); stopListening(); }
+    if (e.key === 'Escape') { stopVoice(); stopListening({ showFeedback: true }); }
   });
 
   window.addEventListener('pagehide', () => {
     stopVoice();
     if (ambientActive) setAmbientActive(false);
-    if (recognizer) { try { recognizer.abort(); } catch (err) { /* noop */ } }
+    stopListening();
   });
 
   /* ================= Init ================= */
-  addMessage('ai', GREETING, { animate: false, meta: 'Offline Sanctuary' });
+  if (soundBtn && voiceAutoRead) {
+    soundBtn.setAttribute('aria-pressed', 'true');
+    soundBtn.classList.add('text-teal-600', 'bg-teal-50', 'ring-teal-400');
+  }
+
+  const aiNode = addMessage('ai', GREETING, { animate: false, meta: 'Offline Sanctuary' });
   thread.setAttribute('aria-live', 'polite');   // announce only what arrives after load
   scroller.scrollTop = 0;
   autoResize();
   syncComposer();
+
+  if (voiceAutoRead) {
+    const vBtn = aiNode.querySelector('.voice-btn');
+    if (vBtn) {
+      setTimeout(() => {
+        toggleVoice(vBtn);
+      }, 400);
+    }
+  }
 }
 
 if (document.readyState === 'loading') {

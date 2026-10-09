@@ -10,7 +10,7 @@
 Students and creators under pressure do not always need another long, overwhelming AI answer. Often, what is needed most is a quiet pause, a breath cue, and one gentle next step.
 
 Pahinga is designed as a calm, distraction-free sanctuary with:
-1. **On-Device Local AI Inference:** Runs sentiment analysis directly in your browser using `@huggingface/transformers` without transmitting your thoughts or messages to any remote cloud API.
+1. **On-Device Local AI Inference:** Runs sentiment analysis directly in your browser using `@huggingface/transformers`. When the optional local llama.cpp runtime is running, Qwen3 can generate a short reply through a localhost-only Astro endpoint; no message is sent to a remote AI API.
 2. **Restrained Grounding Response Engine:** Thoughtfully authored non-clinical templates in English and Taglish following a *Reflect → Ground → Invite Agency* pattern.
 3. **Paced Breathing Orb:** A gentle 9-second visual cycle (inhale ~4s, brief hold, exhale ~4s) with pause/resume controls and touch-responsive ripple animations.
 4. **Procedural Ambient Sound:** Synthesizes calming ocean waves and soft rain directly via the Web Audio API—100% offline, zero byte downloads, seamlessly synchronized with your breathing cycle.
@@ -28,12 +28,14 @@ Pahinga is designed as a calm, distraction-free sanctuary with:
 - **Model Task:** English text sentiment classification; not clinical emotion detection or psychiatric evaluation
 - **Model License:** The exact Xenova ONNX export repository does not declare a separate license field in its model card or repository metadata. Its upstream [`distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english) model card lists Apache-2.0; confirm the event's accepted interpretation of that upstream license for the exported repository before final submission.
 - **Response Generation:** Locally authored templates with deterministic intent routing and feeling chip overrides
+- **Optional Local Generation:** `Qwen3-1.7B` in `Q4_K_M` GGUF format served by a local llama.cpp-compatible OpenAI-style endpoint on `127.0.0.1`; automatic fallback remains active when it is unavailable
+- **Qwen Prompt Context:** The current message, the two most recent user messages, and sanitized onboarding context (`name`, `country`, and optional `about`) from browser `localStorage`; age is intentionally omitted
 - **Voice Output:** ElevenLabs cloud voice when configured, with browser Web Speech API (`SpeechSynthesis`) fallback and optional auto-read/per-bubble controls
 - **Voice Input:** Browser Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)
 - **Ambient Audio:** Procedural Web Audio API pink noise generator with an LFO-modulated lowpass filter (no external audio assets)
 - **Offline Shell & PWA:** Service Worker (`sw.js`) and Web App Manifest (`manifest.json`) for offline asset and model caching
-- **Cloud APIs:** ElevenLabs is used only for optional reply audio when cloud voice is configured and available. Text replies, response routing, and local AI inference remain client-side and do not require the cloud voice endpoint.
-- **Persistence:** LocalStorage strictly for non-sensitive onboarding completion flag; no conversation history or user text is stored.
+- **Cloud APIs:** ElevenLabs is used only for optional reply audio when cloud voice is configured and available. Text replies, response routing, browser classification, and optional Qwen generation do not require a cloud AI endpoint.
+- **Persistence:** LocalStorage stores the onboarding profile entered by the user and the completion flag; no conversation history or chat text is stored. The local Qwen prompt uses only the sanitized name, country, and optional about fields; age is not sent.
 - **Known Limitations:** The model is an English-focused sentiment classifier and can misinterpret cultural nuance or complex metaphors; explicit feeling chips and Taglish templates are provided to ground user intent. Pahinga is not a medical device, diagnosis tool, or emergency service.
 
 When ElevenLabs playback is used, the current reply text is sent to ElevenLabs to synthesize audio. The existing status toast indicates cloud-voice use or fallback. Keep the actual API key and voice configuration only in the ignored local `.env` file; never place secret values in source code, documentation, or client bundles.
@@ -61,7 +63,28 @@ npm run dev
 
 Open [http://localhost:4321](http://localhost:4321) in your browser.
 
-For cloud voice, configure the local ignored `.env` file with the ElevenLabs key, voice ID, and model settings used by the server endpoint. The application remains usable with browser speech or text alone when these values are absent or the provider cannot be reached.
+For cloud voice, configure the local ignored `.env` file with the ElevenLabs key, voice ID, and model settings used by the server endpoint. For optional local Qwen generation, start a llama.cpp-compatible server on `127.0.0.1:8080` with the downloaded `Qwen3-1.7B-Q4_K_M.gguf` model. The application remains usable with browser speech or text alone when either runtime is absent or unavailable.
+
+### Optional Qwen3 local generation
+
+1. Download the `Qwen3-1.7B-Q4_K_M.gguf` file from [`ggml-org/Qwen3-1.7B-GGUF`](https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF) and verify the Apache-2.0 license shown on its model card.
+2. Start a llama.cpp-compatible server with an OpenAI-style endpoint, for example:
+
+   ```powershell
+   .\llama-server.exe -m .\models\Qwen3-1.7B-Q4_K_M.gguf --host 127.0.0.1 --port 8080 -c 4096 --jinja
+   ```
+
+3. Start Pahinga with `npm run dev`. The app automatically tries Qwen3 after its deterministic crisis, chip, and keyword routing rules.
+4. If llama.cpp is stopped, times out, or returns invalid text, Pahinga automatically uses the existing browser-local DistilBERT/template path. This fallback is intentional and remains the reliable demo path.
+
+Optional `.env` settings:
+
+```dotenv
+PAHINGA_QWEN_ENABLED=true
+PAHINGA_QWEN_URL=http://127.0.0.1:8080/v1/chat/completions
+PAHINGA_QWEN_MODEL=Qwen3-1.7B-Q4_K_M.gguf
+PAHINGA_QWEN_TIMEOUT_MS=30000
+```
 
 ---
 
@@ -71,7 +94,7 @@ For cloud voice, configure the local ignored `.env` file with the ElevenLabs key
 2. **Disconnect Network:** Turn off your Wi-Fi, unplug ethernet, or switch your browser DevTools Network tab to **Offline**.
 3. **Send a Message:** Type a message (e.g., *"I'm having a really stressful day"*) or click a feeling chip (*"I'm burnt out"*).
 4. **Inspect Network Activity:** Notice zero outgoing network calls to remote AI endpoints.
-5. **Verify AI Response:** The message is classified locally in browser memory, and a gentle grounding response appears with the `🧠 On-device AI` or `⚡ Quick Feeling Chip` metadata badge. If WebGPU is unavailable, confirm the supported WASM/CPU path or the explicit local-template fallback remains usable.
+5. **Verify AI Response:** The message is handled locally. If llama.cpp is running, the reply shows `✨ Local Qwen3 • llama.cpp`; otherwise the browser-local classifier or authored fallback appears with `🧠 On-device AI` or `🌱 Local Grounding`. If WebGPU is unavailable, confirm the supported WASM/CPU path or the explicit local-template fallback remains usable.
 6. **Test Ambient Audio & Breathing:** Tap the ambient sound icon in the header (waves icon) to hear the offline ocean waves, and tap/pause the breathing orb.
 
 ## ✅ Verification Status
@@ -81,7 +104,7 @@ Automated checks completed in the local development environment:
 - `npm run build` completes successfully and generates the static pages plus the server-rendered voice endpoint.
 - HTTP smoke tests return `200` for `/`, `/chat`, `/onboarding`, `/manifest.json`, and `/sw.js`.
 - Headless Edge smoke checks render the chat page and capture desktop (`1440x900`) and phone-sized (`390x844`) screenshots.
-- Static inspection confirms no OpenAI, Gemini, Anthropic, Ollama, WebLLM, or frontend chat-completions integration; ElevenLabs is accessed only through the server voice proxy.
+- Static inspection confirms no cloud LLM, Ollama, WebLLM, or frontend chat-completions integration; Qwen3 is accessed only through the server-side localhost proxy, and ElevenLabs is accessed only through the server voice proxy.
 
 Completed on the demo browser/device:
 

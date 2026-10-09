@@ -32,10 +32,11 @@
         class="group/composer flex items-center gap-2.5 rounded-[2rem] bg-white/85 p-2 px-3 shadow-composer ring-1 ring-white/90 backdrop-blur-xl transition-all focus-within:ring-2 focus-within:ring-teal-400/80 focus-within:bg-white">
     
     <!-- Mic Button on the left (matches attached screenshot) -->
-    <button id="mic-btn" type="button" data-listening="false" aria-pressed="false" aria-label="Start voice input"
-            class="mic relative size-10 shrink-0 grid place-items-center rounded-full bg-slate-100 hover:bg-slate-200/80 text-teal-800 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 data-[listening=true]:bg-teal-600 data-[listening=true]:text-white">
+    <button id="mic-btn" type="button" data-listening="false" aria-pressed="false" aria-label="Start voice input" title="Start voice input"
+            class="mic relative size-10 shrink-0 grid place-items-center rounded-full bg-slate-100 hover:bg-slate-200/80 text-teal-800 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 data-[listening=true]:bg-teal-600 data-[listening=true]:hover:bg-teal-700 data-[listening=true]:text-white data-[listening=true]:shadow-[0_0_0_3px_rgba(45,212,191,0.35),0_4px_14px_-2px_rgba(13,148,136,0.6)]">
       <span class="listen-ring" aria-hidden="true"></span>
-      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <span class="hidden [.mic[data-listening='true']_&]:block absolute top-1.5 right-1.5 size-2 rounded-full bg-emerald-300 ring-2 ring-teal-600 pointer-events-none animate-pulse" aria-hidden="true"></span>
+      <svg viewBox="0 0 24 24" class="size-5 transition-transform duration-200 [.mic[data-listening='true']_&]:scale-105" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <rect x="9" y="3" width="6" height="11" rx="3"></rect>
         <path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path>
       </svg>

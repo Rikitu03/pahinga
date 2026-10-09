@@ -38,6 +38,10 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
+  // Bypass service worker for audio/video media requests (prevents NotSupportedError due to Range header issues)
+  if (event.request.destination === 'audio' || event.request.destination === 'video') return;
+  if (event.request.headers.get('range')) return;
+
   const url = new URL(event.request.url);
 
   // Cache-first or Stale-while-revalidate for local origin and Hugging Face model assets
